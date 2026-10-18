@@ -10,6 +10,7 @@
      옵시디언처럼 body에 theme-light/theme-dark, is-mobile/is-phone 클래스를 붙인다. */
   body {
     --accent-h: 258; --accent-s: 88%; --accent-l: 66%;
+    --background-modifier-border-focus: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.6);
     --font-interface: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
     --font-ui-smaller: 12px;
     --font-ui-small: 13px;
@@ -221,15 +222,13 @@
   .is-phone .tt-stat-num { font-size: var(--font-ui-large); }
 
   .tt-scope { display: flex; align-items: center; gap: var(--size-4-2); margin-top: var(--size-4-3); padding: 0 var(--size-4-2); color: var(--text-muted); font-size: var(--font-ui-small); }
-  .app .tt-link { height: auto; padding: 0; background: none; box-shadow: none; color: var(--text-accent); font-weight: normal; }
-  .app .tt-link:hover { background: none; text-decoration: underline; }
 
   .tt-section { margin-top: var(--size-4-5); }
   .tt-section-head { display: flex; align-items: center; gap: var(--size-4-2); padding: var(--size-2-3) var(--size-2-2) var(--size-4-2) var(--size-4-2); border-bottom: 1px solid var(--background-modifier-border); }
   .tt-section-icon { display: inline-flex; color: var(--text-muted); }
   .tt-section-title { margin: 0; font-size: var(--font-ui-medium); font-weight: var(--font-semibold); }
   .tt-count { color: var(--text-faint); font-size: var(--font-ui-small); font-variant-numeric: tabular-nums; }
-  .tt-section-tools { margin-left: auto; display: flex; gap: var(--size-2-1); }
+  .tt-section-tools { margin-left: auto; display: flex; align-items: center; gap: var(--size-4-2); }
   .tt-section-tools .is-collapsed svg { transform: rotate(180deg); }
   .tt-hint { display: flex; align-items: center; gap: var(--size-2-3); padding: var(--size-4-2) var(--size-4-2) 0; color: var(--text-muted); font-size: var(--font-ui-smaller); }
   .tt-list { display: flex; flex-direction: column; gap: var(--size-2-1); padding-top: var(--size-2-3); }
@@ -245,11 +244,10 @@
   }
   .app .tt-check:hover { background: transparent; border-color: var(--interactive-accent); }
   .app .tt-check.is-done, .app .tt-check.is-cancelled { border-color: transparent; cursor: default; }
-  .app .tt-main {
-    flex: 1; min-width: 0; height: auto; justify-content: flex-start; padding: var(--size-4-2) 0;
-    background: none; box-shadow: none; font-size: var(--font-ui-medium); font-weight: normal; text-align: left;
-  }
-  .app .tt-main:hover { background: none; }
+  /* 제목은 button이 아닌 일반 요소다. 테마가 button마다 입히는 테두리·그림자·굵기를 받지 않는다. */
+  .tt-plain { cursor: pointer; }
+  .tt-plain:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background-modifier-border-focus); border-radius: var(--radius-s); }
+  .tt-main { flex: 1; min-width: 0; padding: var(--size-4-2) 0; font-size: var(--font-ui-medium); }
   .tt-item-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tt-item.is-selected .tt-item-title { white-space: normal; overflow-wrap: anywhere; }
   .tt-item.is-done .tt-item-title, .tt-item.is-cancelled .tt-item-title { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--text-faint); }
@@ -293,9 +291,8 @@
   .is-phone .tt-bar { bottom: var(--size-4-3); }
 
   .tt-record-day { margin-top: var(--size-4-4); padding: 0 var(--size-4-2); color: var(--text-muted); font-size: var(--font-ui-smaller); font-weight: var(--font-semibold); }
-  .tt-filter-chips { display: flex; gap: var(--size-2-3); }
-  .app .tt-filter-chips button { height: auto; padding: var(--size-2-1) var(--size-4-2); box-shadow: none; border: 1px solid var(--background-modifier-border); background: transparent; color: var(--text-muted); font-size: var(--font-ui-smaller); border-radius: var(--radius-l); }
-  .app .tt-filter-chips button.is-active { border-color: var(--interactive-accent); color: var(--text-accent); background: var(--background-modifier-active-hover); }
+  .tt-record-filters { display: flex; align-items: center; gap: var(--size-2-3); }
+  .is-phone .tt-record-filters { flex-wrap: wrap; justify-content: flex-end; }
 
   .tt-blank { display: flex; flex-direction: column; align-items: center; gap: var(--size-4-2); padding: var(--size-4-12) var(--size-4-4); text-align: center; }
   .tt-blank-title { font-size: var(--font-ui-medium); font-weight: var(--font-semibold); }
@@ -378,6 +375,7 @@
       T({ title: '강의 3강 듣기', dates: d(12, 13), cat: '공부', status: 'done', done: '2026-10-13', memo: '2강 복습도 같이 함' }),
       T({ title: '헬스장 1일권 구매', dates: d(11), cat: '생활', status: 'cancelled', cancelled: '2026-10-12', reason: '집 근처에 새 헬스장이 생겨서 필요 없어짐' }),
       T({ title: '세탁기 청소', dates: d(10), cat: '생활', status: 'done', done: '2026-10-10' }),
+      T({ title: '이사 준비 목록 쓰기', dates: ['2026-09-25'], cat: '생활', status: 'done', done: '2026-09-25' }),
     ];
   }
 
@@ -400,10 +398,13 @@
 
   let tasks = sample();
   let showEmpty = false;
-  const freshUi = () => ({ tab: 'all', collapsed: {}, expanded: null, filter: 'all', cat: 'all', q: '', searchOpen: false, menu: null, modal: null, notice: null, recStatus: 'all' });
+  const freshUi = () => ({ tab: 'all', collapsed: {}, expanded: null, filter: 'all', cat: 'all', q: '', searchOpen: false, menu: null, modal: null, notice: null, recStatus: 'all', recMonth: '' });
   let ui = freshUi();
   const openParam = Number(new URLSearchParams(location.search).get('open'));
   if (openParam) ui.expanded = openParam;
+  // ?tab=records 처럼 특정 탭으로 열 수 있다
+  const tabParam = new URLSearchParams(location.search).get('tab');
+  if (tabParam) ui.tab = tabParam;
   let noticeTimer = null;
   const app = document.getElementById('app');
 
@@ -449,6 +450,7 @@
   function records() {
     return list().filter((t) => t.status !== 'open').map(decorate)
       .filter((v) => ui.recStatus === 'all' || v.status === ui.recStatus)
+      .filter((v) => ui.recMonth === '' || v.first.slice(0, 7) === ui.recMonth)
       .filter((v) => ui.cat === 'all' || v.cat === ui.cat)
       .filter(matchQ)
       .sort((a, b) => ((b.done || b.cancelled) > (a.done || a.cancelled) ? 1 : (b.done || b.cancelled) < (a.done || a.cancelled) ? -1 : b.id - a.id));
@@ -551,7 +553,7 @@
       ${stat('upcoming', '예정', c.upcoming, '내일 이후', I.cal)}
       ${stat('records', '기록', c.records, `완료 ${c.done} · 취소 ${c.cancelled}`, I.circleCheck)}</div>`;
     const names = { past: '지난 계획', today: '오늘', upcoming: '예정', records: '기록' };
-    const scope = ui.tab !== 'all' ? `<div class="tt-scope">${names[ui.tab]}만 보는 중 · <button class="tt-link" data-action="tab" data-tab="all">전체 보기</button></div>` : '';
+    const scope = ui.tab !== 'all' ? `<div class="tt-scope">${names[ui.tab]}만 보는 중 · <button data-action="tab" data-tab="all">전체 보기</button></div>` : '';
     let body;
     if (ui.tab === 'records') body = recordsSection();
     else {
@@ -601,7 +603,7 @@
       ? `<div class="tt-pills"><button data-action="complete" data-id="${v.id}">${I.checkS} 완료</button><button data-action="menu" data-id="${v.id}" data-menu="date">${I.cal}${md(v.cur)}</button><button data-action="menu" data-id="${v.id}" aria-label="더 보기">${I.more}</button></div>`
       : '';
     return `<div class="tt-item is-${v.status}${sel ? ' is-selected' : ''}" data-item="${v.id}">
-      <div class="tt-row">${mark}<button class="tt-main" data-action="open" data-id="${v.id}" aria-expanded="${sel}"><span class="tt-item-title">${esc(v.title)}</span></button>
+      <div class="tt-row">${mark}<span role="button" tabindex="0" class="tt-plain tt-main" data-action="open" data-id="${v.id}" aria-expanded="${sel}"><span class="tt-item-title">${esc(v.title)}</span></span>
         <span class="tt-meta">${meta(v)}</span>${pills}</div>
       ${sel ? `<div class="tt-detail">${fields(v)}${actions(v)}</div>` : ''}
     </div>`;
@@ -635,8 +637,13 @@
   function recordsSection() {
     const c = counts();
     const items = records();
-    const chips = [['all', `전체 ${c.records}`], ['done', `완료 ${c.done}`], ['cancelled', `취소 ${c.cancelled}`]]
-      .map(([k, l]) => `<button class="${ui.recStatus === k ? 'is-active' : ''}" aria-pressed="${ui.recStatus === k}" data-action="rec-status" data-status="${k}">${l}</button>`).join('');
+    const open = !ui.collapsed.records;
+    const opt = (v, l, cur) => `<option value="${esc(v)}"${cur === v ? ' selected' : ''}>${esc(l)}</option>`;
+    const months = [...new Set(list().filter((t) => t.status !== 'open').map((t) => t.dates[0].slice(0, 7)))].sort().reverse();
+    // 상태와 월은 옵시디언 기본 드롭다운으로 고른다.
+    const filters = `<div class="tt-record-filters">
+      <select class="dropdown" data-bind="rec-status" aria-label="상태">${opt('all', `전체 ${c.records}`, ui.recStatus)}${opt('done', `완료 ${c.done}`, ui.recStatus)}${opt('cancelled', `취소 ${c.cancelled}`, ui.recStatus)}</select>
+      <select class="dropdown" data-bind="rec-month" aria-label="월">${opt('', '모든 달', ui.recMonth)}${months.map((m) => opt(m, m, ui.recMonth)).join('')}</select></div>`;
     let out = '';
     let cur = null;
     let buf = [];
@@ -648,7 +655,7 @@
     }
     flush();
     return `<section class="tt-section"><div class="tt-section-head"><span class="tt-section-icon">${I.archive}</span><h3 class="tt-section-title">기록</h3><span class="tt-count">${items.length}</span>
-      <div class="tt-section-tools tt-filter-chips">${chips}</div></div>${out || '<div class="tt-empty">조건에 맞는 기록이 없어요.</div>'}</section>`;
+      <div class="tt-section-tools">${filters}<button class="clickable-icon${open ? '' : ' is-collapsed'}" data-action="toggle-sec" data-sec="records" aria-expanded="${open}" aria-label="기록 ${open ? '접기' : '펼치기'}">${I.up}</button></div></div>${open ? (out || '<div class="tt-empty">조건에 맞는 기록이 없어요.</div>') : ''}</section>`;
   }
 
   function bar() {
@@ -785,7 +792,6 @@
       case 'tab': ui.tab = el.dataset.tab; ui.expanded = null; break;
       case 'toggle-sec': ui.collapsed[el.dataset.sec] = !ui.collapsed[el.dataset.sec]; break;
       case 'filter-toggle': ui.filter = ui.filter === 'deadline' ? 'all' : 'deadline'; break;
-      case 'rec-status': ui.recStatus = el.dataset.status; break;
       case 'search-open': ui.searchOpen = true; break;
       case 'search-close': ui.searchOpen = false; ui.q = ''; break;
       case 'menu': openMenu(id, el, el.dataset.menu); break;
@@ -823,9 +829,20 @@
   });
 
   app.addEventListener('change', (e) => {
-    if (e.target.dataset.bind !== 'cat') return;
-    ui.cat = e.target.value;
+    const bind = e.target.dataset.bind;
+    if (bind === 'cat') ui.cat = e.target.value;
+    else if (bind === 'rec-status') ui.recStatus = e.target.value;
+    else if (bind === 'rec-month') ui.recMonth = e.target.value;
+    else return;
     render();
+  });
+
+  // button이 아닌 클릭 요소(항목 제목)도 Enter, Space로 누를 수 있다.
+  app.addEventListener('keydown', (e) => {
+    const el = e.target.closest('.tt-plain');
+    if (!el || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    el.click();
   });
 
   app.addEventListener('submit', (e) => {
