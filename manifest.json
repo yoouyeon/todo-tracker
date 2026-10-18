@@ -1,0 +1,10 @@
+{
+  "id": "todo-tracker",
+  "name": "Todo Tracker",
+  "version": "0.1.0",
+  "minAppVersion": "1.11.0",
+  "description": "Read and edit monthly Markdown todo ledgers: overdue, today and upcoming at a glance.",
+  "author": "yoouyeon",
+  "authorUrl": "https://github.com/yoouyeon",
+  "isDesktopOnly": false
+}

@@ -1,0 +1,30 @@
+{
+  "name": "todo-tracker",
+  "version": "0.1.0",
+  "description": "월별 Markdown 장부의 할 일을 옵시디언에서 확인하고 편집하는 플러그인",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit && node esbuild.config.mjs production",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "author": "yoouyeon",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "builtin-modules": "^5.4.0",
+    "esbuild": "^0.28.2",
+    "obsidian": "^1.14.4",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}
