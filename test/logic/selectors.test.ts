@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parseLedger } from "../../src/data/parseLedger";
-import { buildBoard, NO_FILTERS, type Board, type Clock, type Filters } from "../../src/logic/selectors";
+import { buildBoard, findOpenDuplicates, NO_FILTERS, type Board, type Clock, type Filters } from "../../src/logic/selectors";
 
 const fixture = (name: string) => readFileSync(new URL(`../fixtures/${name}`, import.meta.url), "utf8");
 const ledgers = [parseLedger("할일/2026-10.md", fixture("2026-10.md")), parseLedger("할일/2026-09.md", fixture("2026-09.md"))];
@@ -159,6 +159,29 @@ describe("buildBoard: 기록", () => {
 
   it("월 선택지는 최근 달이 먼저다", () => {
     expect(board().recordMonths).toEqual(["2026-10", "2026-09"]);
+  });
+});
+
+describe("findOpenDuplicates", () => {
+  it("제목이 완전히 같은 진행 중 항목을 찾는다", () => {
+    const found = findOpenDuplicates(ledgers, "알고리즘 2문제");
+    expect(found.map((t) => t.status)).toEqual(["open"]);
+    expect(found[0]?.plannedDates).toEqual(["2026-10-17", "2026-10-18"]);
+  });
+
+  it("끝난 항목과 읽을 수 없는 항목은 찾지 않는다", () => {
+    expect(findOpenDuplicates(ledgers, "아침 스트레칭")).toEqual([]);
+    expect(findOpenDuplicates(ledgers, "알 수 없는 기호")).toEqual([]);
+  });
+
+  it("비슷한 이름은 같다고 보지 않는다", () => {
+    expect(findOpenDuplicates(ledgers, "알고리즘")).toEqual([]);
+    expect(findOpenDuplicates(ledgers, "알고리즘 3문제")).toEqual([]);
+  });
+
+  it("입력의 줄바꿈과 연속 공백은 저장될 때처럼 정리해서 비교한다", () => {
+    expect(findOpenDuplicates(ledgers, "  알고리즘   2문제 ")).toHaveLength(1);
+    expect(findOpenDuplicates(ledgers, "   ")).toEqual([]);
   });
 });
 

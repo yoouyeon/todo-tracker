@@ -1,3 +1,4 @@
+import { toOneLine } from "../data/editLedger";
 import type { ParsedLedger, TaskRecord } from "../data/types";
 import { ageInDays, bucketOf, deadlineState, isStale, monthOf, type Bucket, type DeadlineState } from "./dates";
 import { deadlineLabel } from "./format";
@@ -73,6 +74,16 @@ export interface Board {
   recordMonths: string[];
   /** 항목 밖의 파일 단위 문제. `파일 경로: 내용` */
   fileIssues: string[];
+}
+
+/**
+ * 제목이 완전히 같은 진행 중 항목. 비슷한 이름은 찾지 않고, 자동으로 합치지도 않는다.
+ * 새 할 일을 만들 때 기존 항목에 날짜를 더할지 새로 만들지 사용자가 고르게 하는 데 쓴다.
+ */
+export function findOpenDuplicates(ledgers: ParsedLedger[], title: string): TaskRecord[] {
+  const wanted = toOneLine(title);
+  if (wanted === "") return [];
+  return ledgers.flatMap((ledger) => ledger.tasks).filter((t) => t.problems.length === 0 && t.status === "open" && t.title === wanted);
 }
 
 export function buildItems(ledgers: ParsedLedger[], clock: Clock): TaskItem[] {
