@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>할 일 트래커 시안</title>
+<style>
+  /* ===== 1. 옵시디언 테마 변수 흉내 =====
+     실제 플러그인에서는 정의하지 않고 사용자 테마의 값을 그대로 쓴다.
+     옵시디언처럼 body에 theme-light/theme-dark, is-mobile/is-phone 클래스를 붙인다. */
+  body {
+    --accent-h: 258; --accent-s: 88%; --accent-l: 66%;
+    --font-interface: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    --font-ui-smaller: 12px;
+    --font-ui-small: 13px;
+    --font-ui-medium: 15px;
+    --font-ui-large: 20px;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    --line-height-tight: 1.3;
+    --radius-s: 4px;
+    --radius-m: 8px;
+    --radius-l: 12px;
+    --input-radius: 5px;
+    --input-height: 30px;
+    --checkbox-size: 18px;
+    --size-2-1: 2px; --size-2-2: 4px; --size-2-3: 6px;
+    --size-4-1: 4px; --size-4-2: 8px; --size-4-3: 12px; --size-4-4: 16px; --size-4-5: 20px; --size-4-6: 24px; --size-4-8: 32px; --size-4-12: 48px;
+    --interactive-accent: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    --interactive-accent-hover: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) - 4%));
+    --text-accent: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) - 8%));
+    --text-on-accent: #ffffff;
+  }
+  body.theme-light {
+    --background-primary: #ffffff;
+    --background-primary-alt: #fafafa;
+    --background-secondary: #f6f6f6;
+    --background-modifier-hover: rgba(0, 0, 0, 0.067);
+    --background-modifier-active-hover: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.15);
+    --background-modifier-border: #e0e0e0;
+    --background-modifier-form-field: #ffffff;
+    --background-modifier-cover: rgba(220, 220, 220, 0.4);
+    --text-normal: #222222;
+    --text-muted: #5c5c5c;
+    --text-faint: #ababab;
+    --text-error: #e93147;
+    --interactive-normal: #ffffff;
+    --interactive-hover: #f2f3f5;
+    --checkbox-border-color: #ababab;
+    --color-red: #e93147;
+    --color-orange: #ec7500;
+    --color-green: #08b94e;
+    --color-blue: #086ddd;
+    --shadow-s: 0 1px 2px rgba(0, 0, 0, 0.028), 0 3.4px 6.7px rgba(0, 0, 0, 0.042), 0 15px 30px rgba(0, 0, 0, 0.07);
+    --shadow-l: 0 1.8px 7.3px rgba(0, 0, 0, 0.071), 0 6.3px 24.7px rgba(0, 0, 0, 0.112), 0 30px 90px rgba(0, 0, 0, 0.2);
+    --input-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12), 0 2px 3px rgba(0, 0, 0, 0.05), 0 1px 1.5px rgba(0, 0, 0, 0.03);
+    color-scheme: light;
+  }
+  body.theme-dark {
+    --accent-l: 68%;
+    --background-primary: #1e1e1e;
+    --background-primary-alt: #242424;
+    --background-secondary: #262626;
+    --background-modifier-hover: rgba(255, 255, 255, 0.075);
+    --background-modifier-active-hover: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.15);
+    --background-modifier-border: #363636;
+    --background-modifier-form-field: rgba(0, 0, 0, 0.3);
+    --background-modifier-cover: rgba(10, 10, 10, 0.4);
+    --text-normal: #dadada;
+    --text-muted: #b3b3b3;
+    --text-faint: #666666;
+    --text-error: #fb464c;
+    --interactive-normal: #363636;
+    --interactive-hover: #3f3f3f;
+    --checkbox-border-color: #666666;
+    --color-red: #fb464c;
+    --color-orange: #e9973f;
+    --color-green: #44cf6e;
+    --color-blue: #027aff;
+    --shadow-s: 0 1px 2px rgba(0, 0, 0, 0.121), 0 3.4px 6.7px rgba(0, 0, 0, 0.179), 0 15px 30px rgba(0, 0, 0, 0.3);
+    --shadow-l: 0 1.8px 7.3px rgba(0, 0, 0, 0.071), 0 6.3px 24.7px rgba(0, 0, 0, 0.112), 0 30px 90px rgba(0, 0, 0, 0.2);
+    --input-shadow: inset 0 0.5px 0.5px 0.5px rgba(255, 255, 255, 0.09), 0 2px 4px 0 rgba(0, 0, 0, 0.15), 0 1px 1.5px 0 rgba(0, 0, 0, 0.1);
+    color-scheme: dark;
+  }
+  /* 가상 테마: 변수 값만 바꿨을 때도 화면이 버티는지 보려는 가짜 테마 */
+  body.mock-skin-warm {
+    --font-interface: "Avenir Next", "Helvetica Neue", "Apple SD Gothic Neo", sans-serif;
+    --radius-s: 6px; --radius-m: 12px; --radius-l: 18px; --input-radius: 10px;
+  }
+  body.mock-skin-warm.theme-light {
+    --background-primary: #fbf8f3; --background-primary-alt: #f7f2ea; --background-secondary: #f0eadf;
+    --background-modifier-border: #e2d9ca; --text-normal: #2b2620; --text-muted: #6b6155; --text-faint: #a89c8c;
+    --interactive-normal: #fffdf9; --interactive-hover: #f3ece1; --checkbox-border-color: #a89c8c;
+  }
+  body.mock-skin-warm.theme-dark {
+    --background-primary: #22201d; --background-primary-alt: #292622; --background-secondary: #2c2925;
+    --background-modifier-border: #3d3832; --text-normal: #e8e0d4; --text-muted: #b5aa9b; --text-faint: #786e62;
+    --interactive-normal: #3a3530; --interactive-hover: #443e37; --checkbox-border-color: #786e62;
+  }
+  body.is-phone { --input-height: 40px; --checkbox-size: 21px; }
+
+  /* ===== 2. 옵시디언이 기본으로 그려 주는 요소 흉내 =====
+     button, mod-cta, clickable-icon, dropdown, 메뉴, 모달, 알림은 옵시디언 기본 스타일이다. 플러그인은 정의하지 않는다. */
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font-interface); font-size: var(--font-ui-small); color: var(--text-normal); background: var(--background-secondary); }
+  .app button {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--size-2-3);
+    height: var(--input-height); padding: 0 var(--size-4-3); border: 0; border-radius: var(--input-radius);
+    background: var(--interactive-normal); box-shadow: var(--input-shadow); color: var(--text-normal);
+    font: inherit; font-size: var(--font-ui-small); font-weight: var(--font-medium); cursor: pointer; white-space: nowrap;
+  }
+  .app button:hover { background: var(--interactive-hover); }
+  .app button.mod-cta { background: var(--interactive-accent); color: var(--text-on-accent); }
+  .app button.mod-cta:hover { background: var(--interactive-accent-hover); }
+  .app button.mod-warning { color: var(--text-error); }
+  .app button:disabled { opacity: .5; cursor: not-allowed; }
+  .app .clickable-icon {
+    height: auto; padding: var(--size-2-2) var(--size-2-3); background: transparent; box-shadow: none;
+    border-radius: var(--radius-s); color: var(--text-muted);
+  }
+  .app .clickable-icon:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+  .app .clickable-icon.is-active { color: var(--text-accent); background: var(--background-modifier-active-hover); }
+  .app select.dropdown {
+    height: var(--input-height); padding: 0 var(--size-4-8) 0 var(--size-4-3); border: 0; border-radius: var(--input-radius);
+    background-color: var(--interactive-normal); box-shadow: var(--input-shadow); color: var(--text-normal);
+    font: inherit; font-size: var(--font-ui-small); appearance: none; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%), linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+    background-position: right 14px center, right 10px center; background-size: 4px 4px; background-repeat: no-repeat;
+  }
+  .app input[type="text"], .app input[type="search"], .app input[type="date"], .app input[type="time"], .app textarea {
+    height: var(--input-height); padding: 0 var(--size-4-2); border: 1px solid var(--background-modifier-border); border-radius: var(--input-radius);
+    background: var(--background-modifier-form-field); color: var(--text-normal); font: inherit; font-size: var(--font-ui-small);
+  }
+  .app textarea { height: auto; min-height: 72px; padding: var(--size-4-2); resize: vertical; line-height: 1.5; }
+  .app input:focus, .app textarea:focus { outline: 2px solid var(--interactive-accent); outline-offset: -1px; }
+
+  /* 메뉴: 데스크톱은 커서 옆, 휴대폰은 아래에서 올라오는 시트 */
+  .menu-layer { position: absolute; inset: 0; z-index: 40; }
+  .menu {
+    position: absolute; min-width: 220px; padding: var(--size-2-3);
+    background: var(--background-primary); border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m); box-shadow: var(--shadow-s);
+  }
+  .app .menu-item {
+    display: flex; justify-content: flex-start; gap: var(--size-4-2); width: 100%; height: auto; padding: var(--size-2-3) var(--size-4-2);
+    background: transparent; box-shadow: none; border-radius: var(--radius-s); font-weight: normal;
+  }
+  .app .menu-item:hover, .app .menu-item:focus-visible { background: var(--background-modifier-hover); outline: 0; }
+  .app .menu-item.is-warning { color: var(--text-error); }
+  .menu-item-icon { display: inline-flex; color: var(--text-muted); }
+  .menu-item.is-warning .menu-item-icon { color: var(--text-error); }
+  .menu-item-hint { margin-left: auto; color: var(--text-faint); font-size: var(--font-ui-smaller); }
+  .menu-separator { height: 1px; margin: var(--size-2-3) calc(var(--size-2-3) * -1); background: var(--background-modifier-border); }
+  .is-phone .menu-layer { background: var(--background-modifier-cover); }
+  .is-phone .menu { left: var(--size-4-2) !important; right: var(--size-4-2); top: auto !important; bottom: var(--size-4-2); padding: var(--size-4-2); border-radius: var(--radius-l); }
+  .is-phone .app .menu-item { padding: var(--size-4-3) var(--size-4-2); font-size: var(--font-ui-medium); }
+  .menu-title { padding: var(--size-2-3) var(--size-4-2) var(--size-4-2); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* 모달 */
+  .modal-container { position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: var(--size-4-4); }
+  .modal-bg { position: absolute; inset: 0; background: var(--background-modifier-cover); }
+  .modal {
+    position: relative; width: 100%; max-width: 460px; max-height: 100%; overflow-y: auto; padding: var(--size-4-6);
+    background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-l); box-shadow: var(--shadow-l);
+  }
+  .is-phone .modal-container { padding: 0; align-items: flex-end; }
+  .is-phone .modal { max-width: none; max-height: 90%; border-radius: var(--radius-l) var(--radius-l) 0 0; padding: var(--size-4-5) var(--size-4-4) var(--size-4-8); }
+  .modal-title { margin: 0 var(--size-4-8) var(--size-2-2) 0; font-size: var(--font-ui-medium); font-weight: var(--font-semibold); }
+  .app .modal-close-button { position: absolute; top: var(--size-4-3); right: var(--size-4-3); }
+
+  /* 알림 */
+  .notice {
+    position: absolute; z-index: 60; top: var(--size-4-3); right: var(--size-4-3); max-width: 300px;
+    padding: var(--size-4-2) var(--size-4-3); border-radius: var(--radius-m);
+    background: var(--background-secondary); border: 1px solid var(--background-modifier-border); box-shadow: var(--shadow-s); line-height: 1.45;
+  }
+  .is-phone .notice { left: var(--size-4-3); right: var(--size-4-3); top: 60px; max-width: none; }
+
+  /* 옵시디언 창 흉내 */
+  .stage { display: flex; justify-content: center; padding: 24px 16px 96px; }
+  .app { position: relative; display: flex; flex-direction: column; overflow: hidden; background: var(--background-primary); border: 1px solid var(--background-modifier-border); }
+  .is-mobile .app { width: 390px; height: 820px; border-radius: 32px; }
+  body:not(.is-mobile) .app { width: min(960px, 100%); height: 860px; border-radius: var(--radius-m); }
+  .tab-bar { flex: none; display: flex; align-items: flex-end; gap: 2px; padding: 6px 8px 0; background: var(--background-secondary); border-bottom: 1px solid var(--background-modifier-border); }
+  .tab { display: flex; align-items: center; gap: 6px; padding: 6px 14px; color: var(--text-muted); border-radius: var(--radius-m) var(--radius-m) 0 0; }
+  .tab.is-active { background: var(--background-primary); color: var(--text-normal); }
+  .mobile-header { flex: none; display: flex; align-items: center; justify-content: center; height: 56px; padding-top: 8px; font-size: var(--font-ui-medium); font-weight: var(--font-semibold); border-bottom: 1px solid var(--background-modifier-border); }
+  .view-content { position: relative; flex: 1; overflow-y: auto; }
+
+  /* ===== 3. 플러그인 CSS =====
+     styles.css로 옮길 부분. 옵시디언 변수만 쓰고 색·글자 크기·둥글기를 직접 정하지 않는다.
+     플러그인 자체 색은 쓰지 않는다. 할 일의 의미는 아이콘·글자·테두리·굵기로 나타내고,
+     강조색은 옵시디언 기본 요소와 선택 상태에만 쓴다. */
+  .tt-view {
+    max-width: 760px; margin: 0 auto; padding: var(--size-4-5) var(--size-4-6) var(--size-4-4);
+    font-size: var(--font-ui-medium);
+  }
+  .is-phone .tt-view { padding: var(--size-4-4) var(--size-4-3) var(--size-4-3); }
+  .tt-head { display: flex; align-items: flex-start; gap: var(--size-4-3); }
+  .tt-title { margin: 0; font-size: var(--font-ui-large); font-weight: var(--font-bold); line-height: var(--line-height-tight); }
+  .tt-sub { margin-top: var(--size-2-2); color: var(--text-muted); font-size: var(--font-ui-small); }
+  .tt-head .mod-cta { margin-left: auto; flex: none; }
+
+  .tt-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--size-4-2); margin-top: var(--size-4-4); }
+  .app .tt-stat {
+    display: flex; flex-direction: column; align-items: flex-start; gap: var(--size-2-2); height: auto; padding: var(--size-4-3);
+    border: 1px solid var(--background-modifier-border); border-radius: var(--radius-l);
+    background: var(--background-primary); box-shadow: none; text-align: left; font-weight: normal;
+  }
+  .app .tt-stat:hover { background: var(--background-primary-alt); border-color: var(--text-faint); }
+  .app .tt-stat.is-active { border-color: var(--interactive-accent); box-shadow: inset 0 0 0 1px var(--interactive-accent); }
+  .tt-stat-label { display: flex; align-items: center; justify-content: space-between; width: 100%; color: var(--text-muted); font-size: var(--font-ui-small); }
+  .tt-stat-icon { display: inline-flex; color: var(--text-faint); }
+  .tt-stat-num { font-size: calc(var(--font-ui-large) * 1.4); font-weight: var(--font-bold); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .tt-stat-caption { color: var(--text-faint); font-size: var(--font-ui-smaller); }
+  .is-phone .tt-stats { gap: var(--size-4-1); margin-top: var(--size-4-3); }
+  .is-phone .app .tt-stat { padding: var(--size-4-2); border-radius: var(--radius-m); gap: 0; }
+  .is-phone .tt-stat-icon, .is-phone .tt-stat-caption { display: none; }
+  .is-phone .tt-stat-label { font-size: var(--font-ui-smaller); }
+  .is-phone .tt-stat-num { font-size: var(--font-ui-large); }
+
+  .tt-scope { display: flex; align-items: center; gap: var(--size-4-2); margin-top: var(--size-4-3); padding: 0 var(--size-4-2); color: var(--text-muted); font-size: var(--font-ui-small); }
+  .app .tt-link { height: auto; padding: 0; background: none; box-shadow: none; color: var(--text-accent); font-weight: normal; }
+  .app .tt-link:hover { background: none; text-decoration: underline; }
+
+  .tt-section { margin-top: var(--size-4-5); }
+  .tt-section-head { display: flex; align-items: center; gap: var(--size-4-2); padding: var(--size-2-3) var(--size-2-2) var(--size-4-2) var(--size-4-2); border-bottom: 1px solid var(--background-modifier-border); }
+  .tt-section-icon { display: inline-flex; color: var(--text-muted); }
+  .tt-section-title { margin: 0; font-size: var(--font-ui-medium); font-weight: var(--font-semibold); }
+  .tt-count { color: var(--text-faint); font-size: var(--font-ui-small); font-variant-numeric: tabular-nums; }
+  .tt-section-tools { margin-left: auto; display: flex; gap: var(--size-2-1); }
+  .tt-section-tools .is-collapsed svg { transform: rotate(180deg); }
+  .tt-hint { display: flex; align-items: center; gap: var(--size-2-3); padding: var(--size-4-2) var(--size-4-2) 0; color: var(--text-muted); font-size: var(--font-ui-smaller); }
+  .tt-list { display: flex; flex-direction: column; gap: var(--size-2-1); padding-top: var(--size-2-3); }
+  .tt-empty { padding: var(--size-4-3) var(--size-4-2); color: var(--text-muted); font-size: var(--font-ui-small); }
+
+  .tt-item { border-radius: var(--radius-m); }
+  .tt-item.is-selected { background: var(--background-modifier-hover); }
+  body:not(.is-mobile) .tt-item:hover { background: var(--background-modifier-hover); }
+  .tt-row { display: flex; align-items: center; gap: var(--size-4-3); min-height: 44px; padding: var(--size-2-2) var(--size-4-2); }
+  .app .tt-check {
+    flex: none; width: var(--checkbox-size); height: var(--checkbox-size); padding: 0;
+    border: 1.5px solid var(--checkbox-border-color); border-radius: 50%; background: transparent; box-shadow: none; color: var(--text-muted);
+  }
+  .app .tt-check:hover { background: transparent; border-color: var(--interactive-accent); }
+  .app .tt-check.is-done, .app .tt-check.is-cancelled { border-color: transparent; cursor: default; }
+  .app .tt-main {
+    flex: 1; min-width: 0; height: auto; justify-content: flex-start; padding: var(--size-4-2) 0;
+    background: none; box-shadow: none; font-size: var(--font-ui-medium); font-weight: normal; text-align: left;
+  }
+  .app .tt-main:hover { background: none; }
+  .tt-item-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tt-item.is-selected .tt-item-title { white-space: normal; overflow-wrap: anywhere; }
+  .tt-item.is-done .tt-item-title, .tt-item.is-cancelled .tt-item-title { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--text-faint); }
+  .tt-meta { flex: none; display: flex; align-items: center; gap: var(--size-4-2); color: var(--text-muted); font-size: var(--font-ui-small); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tt-meta > span { display: inline-flex; align-items: center; gap: var(--size-2-2); }
+  /* 오래 밀림·마감은 테두리 칩으로 보여 준다. 지났거나 임박한 마감만 본문색으로 조금 진하게. */
+  .tt-chip {
+    padding: 1px var(--size-2-3); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-s);
+    color: var(--text-muted); font-size: var(--font-ui-smaller);
+  }
+  .tt-chip.is-strong { color: var(--text-normal); border-color: var(--text-muted); font-weight: var(--font-medium); }
+  .tt-item.is-done .tt-meta, .tt-item.is-cancelled .tt-meta { color: var(--text-faint); text-decoration: line-through; }
+  .tt-pills { display: none; flex: none; gap: var(--size-2-3); }
+  body:not(.is-mobile) .tt-item.is-open:is(:hover, .is-selected) .tt-pills { display: flex; }
+  body:not(.is-mobile) .tt-item.is-open:is(:hover, .is-selected) .tt-meta { display: none; }
+
+  .tt-detail { display: flex; flex-direction: column; gap: var(--size-4-3); padding: var(--size-2-2) var(--size-4-3) var(--size-4-3) calc(var(--checkbox-size) + var(--size-4-3) + var(--size-4-2)); font-size: var(--font-ui-small); }
+  .tt-fields { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--size-4-2) var(--size-4-3); margin: 0; }
+  .tt-fields dt { color: var(--text-muted); }
+  .tt-fields dd { margin: 0; overflow-wrap: anywhere; }
+  .tt-memo { white-space: pre-wrap; line-height: 1.5; }
+  .tt-dates { display: flex; flex-wrap: wrap; gap: var(--size-2-3); }
+  .tt-date { display: inline-flex; align-items: center; gap: var(--size-2-2); padding: var(--size-2-1) var(--size-4-2); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-s); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .tt-date.is-current { border-color: var(--text-muted); color: var(--text-normal); font-weight: var(--font-semibold); }
+  .tt-date small { font-size: var(--font-ui-smaller); font-weight: normal; }
+  .tt-readonly { color: var(--text-faint); font-size: var(--font-ui-smaller); }
+  .tt-actions { display: flex; flex-wrap: wrap; gap: var(--size-2-3); }
+
+  /* 아래에 떠 있는 바. 스크롤 영역 안에서 sticky로 붙인다. */
+  .tt-bar {
+    position: sticky; bottom: var(--size-4-4); z-index: 5;
+    display: flex; align-items: center; gap: var(--size-2-2); width: fit-content; max-width: 100%; margin: var(--size-4-8) auto 0;
+    padding: var(--size-2-3); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-l);
+    background: var(--background-primary); box-shadow: var(--shadow-s);
+  }
+  .tt-bar-sep { flex: none; width: 1px; height: 20px; margin: 0 var(--size-2-2); background: var(--background-modifier-border); }
+  .app .tt-bar .clickable-icon { padding: var(--size-2-3) var(--size-4-2); gap: var(--size-2-3); font-size: var(--font-ui-small); }
+  .app .tt-bar select.dropdown { box-shadow: none; background-color: transparent; color: var(--text-muted); }
+  .app .tt-bar input[type="search"] { width: 180px; border: 0; background: transparent; }
+  .app .tt-bar input[type="search"]:focus { outline: 0; }
+  .is-phone .tt-bar { bottom: var(--size-4-3); }
+
+  .tt-record-day { margin-top: var(--size-4-4); padding: 0 var(--size-4-2); color: var(--text-muted); font-size: var(--font-ui-smaller); font-weight: var(--font-semibold); }
+  .tt-filter-chips { display: flex; gap: var(--size-2-3); }
+  .app .tt-filter-chips button { height: auto; padding: var(--size-2-1) var(--size-4-2); box-shadow: none; border: 1px solid var(--background-modifier-border); background: transparent; color: var(--text-muted); font-size: var(--font-ui-smaller); border-radius: var(--radius-l); }
+  .app .tt-filter-chips button.is-active { border-color: var(--interactive-accent); color: var(--text-accent); background: var(--background-modifier-active-hover); }
+
+  .tt-blank { display: flex; flex-direction: column; align-items: center; gap: var(--size-4-2); padding: var(--size-4-12) var(--size-4-4); text-align: center; }
+  .tt-blank-title { font-size: var(--font-ui-medium); font-weight: var(--font-semibold); }
+  .tt-blank-desc { color: var(--text-muted); font-size: var(--font-ui-small); line-height: 1.5; }
+  .tt-blank code { padding: 1px 4px; border-radius: var(--radius-s); background: var(--background-secondary); }
+
+  .tt-form { display: flex; flex-direction: column; gap: var(--size-4-3); margin-top: var(--size-4-4); }
+  .tt-field { display: flex; flex-direction: column; gap: var(--size-2-2); color: var(--text-muted); font-size: var(--font-ui-small); }
+  .tt-field .tt-required { color: var(--text-error); }
+  .tt-field-row { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: var(--size-4-2); }
+  .tt-help { color: var(--text-muted); font-size: var(--font-ui-smaller); line-height: 1.5; }
+  .tt-quick { display: flex; gap: var(--size-2-3); }
+  .tt-quick button { flex: 1; }
+  .tt-modal-desc { margin: 0; color: var(--text-muted); font-size: var(--font-ui-small); }
+  .tt-modal-actions { display: flex; justify-content: flex-end; gap: var(--size-4-2); margin-top: var(--size-4-2); }
+  .is-phone .tt-modal-actions button { flex: 1; }
+  .tt-callout { padding: var(--size-4-3); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); background: var(--background-secondary); font-size: var(--font-ui-small); line-height: 1.5; }
+  .tt-callout label { display: flex; align-items: flex-start; gap: var(--size-4-2); margin-top: var(--size-4-2); }
+
+  /* ===== 4. 시안 확인용 컨트롤. 플러그인 UI가 아니다. ===== */
+  .mock-note { max-width: 960px; margin: 0 auto; padding: 20px 16px 0; color: var(--text-muted); font-size: 12.5px; line-height: 1.6; }
+  .mock-panel {
+    position: fixed; right: 16px; bottom: 16px; z-index: 150;
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap; max-width: calc(100vw - 32px);
+    background: #111; color: #eee; border-radius: 10px; padding: 8px 10px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.3);
+  }
+  .mock-panel span { opacity: .6; margin: 0 2px 0 4px; }
+  .mock-panel .sep { width: 1px; height: 18px; background: #333; margin: 0 2px; }
+  .mock-panel button { background: #2a2a2a; color: #eee; border: 1px solid #3a3a3a; border-radius: 6px; padding: 4px 8px; font: inherit; cursor: pointer; }
+  .mock-panel button[aria-pressed="true"] { background: #eee; color: #111; }
+</style>
+</head>
+<body class="theme-light is-mobile is-phone">
+<p class="mock-note">D 시안(A의 한 줄 목록 + 요약 카드)을 옵시디언 테마 변수만으로 그렸어요. 플러그인 자체 색은 쓰지 않고, 오래 밀린 일(⧗ N일째)과 마감(⚑)은 아이콘·글자·테두리 칩으로 구분해요. 오른쪽 아래 시안 컨트롤에서 기기, 라이트·다크, 강조색, 가상 테마를 바꿔 테마 값이 달라져도 화면이 버티는지 확인할 수 있어요. 항목은 모두 예시이고, 오늘은 2026-10-18 19:00으로 고정했어요.</p>
+<main class="stage"><div class="app" id="app"></div></main>
+
+<div class="mock-panel" aria-label="시안 컨트롤">
+  <span>기기</span><button data-mock="device" value="phone">휴대폰</button><button data-mock="device" value="desktop">데스크톱</button>
+  <span class="sep"></span>
+  <span>테마</span><button data-mock="theme" value="light">라이트</button><button data-mock="theme" value="dark">다크</button>
+  <span class="sep"></span>
+  <span>강조색</span><button data-mock="accent" value="purple">보라</button><button data-mock="accent" value="blue">파랑</button><button data-mock="accent" value="green">초록</button><button data-mock="accent" value="orange">주황</button>
+  <span class="sep"></span>
+  <span>가상 테마</span><button data-mock="skin" value="default">기본</button><button data-mock="skin" value="warm">따뜻한 배경·큰 모서리</button>
+  <span class="sep"></span>
+  <button data-mock="empty" value="toggle">빈 상태</button><button data-mock="reset" value="reset">초기화</button>
+</div>
+
+<script>
+(() => {
+  const TODAY = '2026-10-18';
+  const NOW_TIME = '19:00';
+  const STORE_KEY = 'todo-tracker-mockup-v3';
+  const ACCENTS = { purple: [258, '88%', '66%'], blue: [212, '92%', '48%'], green: [145, '63%', '40%'], orange: [28, '92%', '50%'] };
+
+  // ── 예시 데이터 ─────────────────────────────────
+  // 오래 밀린 일, 지난달 파일, 계획 날짜 여러 개, 마감 지남·임박, 다른 이름, 완료·취소가 모두 보이게 고른 가짜 항목
+  const d = (...days) => days.map((n) => `2026-10-${String(n).padStart(2, '0')}`);
+  function sample() {
+    let id = 0;
+    const T = (o) => ({ id: ++id, status: 'open', dates: [], deadline: null, done: null, cancelled: null, reason: null, cat: null, aliases: [], memo: null, ...o });
+    return [
+      T({ title: '겨울옷 꺼내기', dates: ['2026-09-28', '2026-10-05'], cat: '생활', memo: '지난달에 계획한 일. 9월 파일에 남아 있음' }),
+      T({ title: '치과 예약 잡기', dates: d(6), cat: '생활', memo: '평일 저녁 진료하는 곳으로' }),
+      T({ title: '여행 사진 정리', dates: d(9, 12), cat: '개인', aliases: ['사진 정리'] }),
+      T({ title: '분리수거', dates: d(16), cat: '생활' }),
+      T({ title: '보고서 초안 제출', dates: d(14, 18), cat: '공부', deadline: { date: '2026-10-17', time: '18:00' }, memo: '마감은 지났지만 늦게라도 제출하기로 함' }),
+      T({ title: '택배 반품 신청', dates: d(18), cat: '생활', deadline: { date: '2026-10-18', time: '23:59' } }),
+      T({ title: '주간 회고 쓰기', dates: d(18), cat: '개인' }),
+      T({ title: '알고리즘 2문제', dates: d(17, 18), cat: '공부', aliases: ['알고리즘 문제 풀기'] }),
+      T({ title: '독서 모임 발제문 쓰기', dates: d(19), cat: '공부', deadline: { date: '2026-10-19', time: '20:00' }, aliases: ['발제 준비'] }),
+      T({ title: '자격증 시험 접수', dates: d(20), cat: '공부', deadline: { date: '2026-10-21', time: '18:00' } }),
+      T({ title: '부모님 선물 주문', dates: d(22), cat: '개인', deadline: { date: '2026-10-28', time: null } }),
+      T({ title: '운동 등록 알아보기', dates: d(25), cat: '생활' }),
+      T({ title: '아침 스트레칭', dates: d(18), cat: '생활', status: 'done', done: '2026-10-18' }),
+      T({ title: '장보기', dates: d(17), cat: '생활', status: 'done', done: '2026-10-17' }),
+      T({ title: '블로그 글 퇴고', dates: d(16, 17), cat: '개인', status: 'done', done: '2026-10-17' }),
+      T({ title: '이력서 사진 찍기', dates: d(15), cat: '개인', status: 'done', done: '2026-10-15' }),
+      T({ title: '강의 3강 듣기', dates: d(12, 13), cat: '공부', status: 'done', done: '2026-10-13', memo: '2강 복습도 같이 함' }),
+      T({ title: '헬스장 1일권 구매', dates: d(11), cat: '생활', status: 'cancelled', cancelled: '2026-10-12', reason: '집 근처에 새 헬스장이 생겨서 필요 없어짐' }),
+      T({ title: '세탁기 청소', dates: d(10), cat: '생활', status: 'done', done: '2026-10-10' }),
+    ];
+  }
+
+  // ── 날짜 ───────────────────────────────────────
+  const dayNum = (s) => { const [y, m, dd] = s.split('-').map(Number); return Date.UTC(y, m - 1, dd) / 864e5; };
+  const addDays = (s, n) => new Date((dayNum(s) + n) * 864e5).toISOString().slice(0, 10);
+  const WD = '일월화수목금토';
+  const wd = (s) => WD[new Date(dayNum(s) * 864e5).getUTCDay()];
+  const md = (s) => { const [, m, dd] = s.split('-'); return `${+m}/${+dd}`; };
+  const mdLong = (s) => { const [, m, dd] = s.split('-'); return `${+m}월 ${+dd}일 (${wd(s)})`; };
+  const fileOf = (s) => `${s.slice(0, 7)}.md`;
+  const TOMORROW = addDays(TODAY, 1);
+
+  // ── 상태 ───────────────────────────────────────
+  const defaults = { device: 'phone', theme: 'light', accent: 'purple', skin: 'default' };
+  let M = { ...defaults };
+  try { M = { ...defaults, ...JSON.parse(localStorage.getItem(STORE_KEY) || '{}') }; } catch (e) { /* 저장소를 쓸 수 없으면 기본값 */ }
+  for (const [k, v] of new URLSearchParams(location.search)) if (k in defaults) M[k] = v;
+  const saveMock = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(M)); } catch (e) { /* 무시 */ } };
+
+  let tasks = sample();
+  let showEmpty = false;
+  const freshUi = () => ({ tab: 'all', collapsed: {}, expanded: null, filter: 'all', cat: 'all', q: '', searchOpen: false, menu: null, modal: null, notice: null, recStatus: 'all' });
+  let ui = freshUi();
+  const openParam = Number(new URLSearchParams(location.search).get('open'));
+  if (openParam) ui.expanded = openParam;
+  let noticeTimer = null;
+  const app = document.getElementById('app');
+
+  const list = () => (showEmpty ? [] : tasks);
+  function decorate(t) {
+    const first = t.dates[0];
+    const cur = t.dates[t.dates.length - 1];
+    const age = dayNum(TODAY) - dayNum(first);
+    const stale = t.status === 'open' && age >= 7;
+    const bucket = cur < TODAY ? 'past' : cur === TODAY ? 'today' : 'upcoming';
+    let dl = null;
+    if (t.deadline && t.status === 'open') {
+      const diff = dayNum(t.deadline.date) - dayNum(TODAY);
+      const time = t.deadline.time ? ` ${t.deadline.time}` : '';
+      const over = diff < 0 || (diff === 0 && t.deadline.time && t.deadline.time < NOW_TIME);
+      const soon = !over && diff <= 3;
+      const when = diff === 0 ? '오늘' : diff === 1 ? '내일' : md(t.deadline.date);
+      dl = over ? { kind: 'over', label: `마감 지남 ${md(t.deadline.date)}${time}`, short: '마감 지남' }
+        : soon ? { kind: 'soon', label: `마감 ${when}${time}`, short: `${when} 마감` }
+        : { kind: 'later', label: `마감 ${md(t.deadline.date)}${time}`, short: `${md(t.deadline.date)} 마감` };
+    }
+    return { ...t, first, cur, age, stale, bucket, dl };
+  }
+  const dlRank = (v) => (v.dl ? { over: 0, soon: 1, later: 2 }[v.dl.kind] : 3);
+  const cats = () => [...new Set(list().map((t) => t.cat).filter(Boolean))];
+  const matchQ = (v) => { const q = ui.q.trim().toLowerCase(); return !q || v.title.toLowerCase().includes(q) || v.aliases.some((a) => a.toLowerCase().includes(q)); };
+  const find = (id) => tasks.find((t) => t.id === Number(id));
+
+  function buckets() {
+    const items = list().filter((t) => t.status === 'open').map(decorate)
+      .filter((v) => ui.filter !== 'deadline' || (v.dl && v.dl.kind !== 'later'))
+      .filter((v) => ui.cat === 'all' || v.cat === ui.cat)
+      .filter(matchQ);
+    const past = items.filter((v) => v.bucket === 'past').sort((a, b) =>
+      (b.stale - a.stale) || (a.stale && b.stale ? b.age - a.age : 0) || dlRank(a) - dlRank(b) || dayNum(a.cur) - dayNum(b.cur) || a.id - b.id);
+    const today = items.filter((v) => v.bucket === 'today').sort((a, b) => dlRank(a) - dlRank(b) || a.id - b.id);
+    const upcoming = items.filter((v) => v.bucket === 'upcoming').sort((a, b) => dayNum(a.cur) - dayNum(b.cur) || dlRank(a) - dlRank(b) || a.id - b.id);
+    // 오늘 완료한 일은 오늘 목록 끝에 취소선으로 남긴다
+    const doneToday = ui.filter !== 'all' ? [] : list().filter((t) => t.status === 'done' && t.done === TODAY).map(decorate)
+      .filter((v) => ui.cat === 'all' || v.cat === ui.cat).filter(matchQ);
+    return { past, today, upcoming, doneToday };
+  }
+  function records() {
+    return list().filter((t) => t.status !== 'open').map(decorate)
+      .filter((v) => ui.recStatus === 'all' || v.status === ui.recStatus)
+      .filter((v) => ui.cat === 'all' || v.cat === ui.cat)
+      .filter(matchQ)
+      .sort((a, b) => ((b.done || b.cancelled) > (a.done || a.cancelled) ? 1 : (b.done || b.cancelled) < (a.done || a.cancelled) ? -1 : b.id - a.id));
+  }
+  function counts() {
+    const open = list().filter((t) => t.status === 'open').map(decorate);
+    return {
+      past: open.filter((v) => v.bucket === 'past').length,
+      today: open.filter((v) => v.bucket === 'today').length,
+      upcoming: open.filter((v) => v.bucket === 'upcoming').length,
+      stale: open.filter((v) => v.stale).length,
+      deadline: open.filter((v) => v.dl && v.dl.kind !== 'later').length,
+      records: list().filter((t) => t.status !== 'open').length,
+      done: list().filter((t) => t.status === 'done').length,
+      cancelled: list().filter((t) => t.status === 'cancelled').length,
+      doneToday: list().filter((t) => t.status === 'done' && t.done === TODAY).length,
+    };
+  }
+
+  // ── 아이콘 (옵시디언 기본 아이콘과 같은 lucide 모양) ─────
+  const svg = (p, s = 16) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  const I = {
+    check: svg('<path d="M20 6 9 17l-5-5"/>', 16),
+    checkS: svg('<path d="M20 6 9 17l-5-5"/>', 14),
+    minus: svg('<path d="M5 12h14"/>', 14),
+    more: svg('<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>', 16),
+    plus: svg('<path d="M12 5v14M5 12h14"/>', 16),
+    up: svg('<path d="m18 15-6-6-6 6"/>', 16),
+    back: svg('<path d="m12 19-7-7 7-7M19 12H5"/>', 16),
+    history: svg('<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/>', 18),
+    sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-14.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>', 18),
+    sunS: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-14.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>', 16),
+    calArrow: svg('<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M14 14l2 2-2 2M8 16h8"/>', 18),
+    cal: svg('<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>', 16),
+    calPlus: svg('<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4"/>', 16),
+    archive: svg('<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>', 18),
+    circleCheck: svg('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>', 16),
+    hourglass: svg('<path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>', 12),
+    flag: svg('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>', 12),
+    arrowRight: svg('<path d="M5 12h14m-7-7 7 7-7 7"/>', 16),
+    pencil: svg('<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>', 16),
+    file: svg('<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>', 16),
+    info: svg('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>', 16),
+    ban: svg('<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>', 16),
+    x: svg('<path d="M18 6 6 18M6 6l12 12"/>', 18),
+    search: svg('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>', 16),
+    tab: svg('<path d="M21 10.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h7"/><path d="m16 19 2 2 4-4M3 10h18"/>', 14),
+  };
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const isPhone = () => M.device === 'phone';
+
+  // ── 렌더 ───────────────────────────────────────
+  function applyMock() {
+    const b = document.body;
+    b.className = `theme-${M.theme}${isPhone() ? ' is-mobile is-phone' : ''}${M.skin === 'warm' ? ' mock-skin-warm' : ''}`;
+    const [h, s, l] = ACCENTS[M.accent];
+    b.style.setProperty('--accent-h', h);
+    b.style.setProperty('--accent-s', s);
+    // 다크 테마는 옵시디언처럼 명도를 조금 올린다
+    b.style.setProperty('--accent-l', M.theme === 'dark' ? `calc(${l} + 4%)` : l);
+    document.querySelectorAll('[data-mock]').forEach((btn) => {
+      const k = btn.dataset.mock;
+      if (k === 'empty') btn.setAttribute('aria-pressed', String(showEmpty));
+      else if (k in M) btn.setAttribute('aria-pressed', String(M[k] === btn.value));
+    });
+  }
+
+  function render() {
+    applyMock();
+    const scroller = app.querySelector('.view-content');
+    const scroll = scroller ? scroller.scrollTop : 0;
+    const header = isPhone()
+      ? '<div class="mobile-header">할 일</div>'
+      : `<div class="tab-bar"><div class="tab">할일/2026-10.md</div><div class="tab is-active">${I.tab} 할 일</div></div>`;
+    app.innerHTML = `${header}<div class="view-content"><div class="tt-view">${viewBody()}</div></div>${layer()}${ui.notice ? `<div class="notice" role="status">${ui.notice}</div>` : ''}`;
+    app.querySelector('.view-content').scrollTop = scroll;
+    placeMenu();
+    const auto = app.querySelector('[data-autofocus]');
+    if (auto) {
+      auto.focus();
+      if (auto.type === 'search' || auto.type === 'text') auto.setSelectionRange(auto.value.length, auto.value.length);
+    }
+  }
+
+  function viewBody() {
+    const c = counts();
+    const head = `<div class="tt-head"><div><h2 class="tt-title">할 일</h2><div class="tt-sub">${mdLong(TODAY)} · 오늘 ${c.today + c.doneToday}개 중 ${c.doneToday}개 완료</div></div>
+      <button class="mod-cta" data-action="new" aria-label="새 할 일">${I.plus}${isPhone() ? '' : ' 새 할 일'}</button></div>`;
+    if (!list().length) {
+      return `${head}<div class="tt-blank"><div class="tt-blank-title">아직 할 일이 없어요</div>
+        <div class="tt-blank-desc"><code>할일/</code> 폴더의 <code>YYYY-MM.md</code> 파일에서 할 일을 읽어요.</div>
+        <button class="mod-cta" data-action="new">${I.plus} 새 할 일</button></div>`;
+    }
+    // 같은 카드를 다시 누르면 전체 보기로 돌아간다
+    const stat = (k, label, num, cap, icon) => `<button class="tt-stat${ui.tab === k ? ' is-active' : ''}" aria-pressed="${ui.tab === k}" data-action="tab" data-tab="${ui.tab === k ? 'all' : k}">
+        <span class="tt-stat-label">${label}<span class="tt-stat-icon">${icon}</span></span><span class="tt-stat-num">${num}</span><span class="tt-stat-caption">${cap}</span></button>`;
+    const stats = `<div class="tt-stats">
+      ${stat('past', '지난 계획', c.past, c.stale ? `오래 밀린 일 ${c.stale}` : '다시 정할 일', I.history)}
+      ${stat('today', '오늘', c.today, c.doneToday ? `완료 ${c.doneToday}` : '오늘 할 일', I.sun)}
+      ${stat('upcoming', '예정', c.upcoming, '내일 이후', I.cal)}
+      ${stat('records', '기록', c.records, `완료 ${c.done} · 취소 ${c.cancelled}`, I.circleCheck)}</div>`;
+    const names = { past: '지난 계획', today: '오늘', upcoming: '예정', records: '기록' };
+    const scope = ui.tab !== 'all' ? `<div class="tt-scope">${names[ui.tab]}만 보는 중 · <button class="tt-link" data-action="tab" data-tab="all">전체 보기</button></div>` : '';
+    let body;
+    if (ui.tab === 'records') body = recordsSection();
+    else {
+      const b = buckets();
+      const show = (k) => ui.tab === 'all' || ui.tab === k;
+      body = [
+        show('past') ? section('past', '지난 계획', I.history, b.past, []) : '',
+        show('today') ? section('today', '오늘', I.sun, b.today, b.doneToday) : '',
+        show('upcoming') ? section('upcoming', '예정', I.calArrow, b.upcoming, []) : '',
+      ].join('');
+    }
+    return head + stats + scope + body + bar();
+  }
+
+  function section(key, label, icon, items, done) {
+    const open = !ui.collapsed[key];
+    const staleN = items.filter((v) => v.stale).length;
+    const add = key === 'past' ? '' : `<button class="clickable-icon" data-action="new" data-date="${key === 'today' ? TODAY : TOMORROW}" aria-label="${label}에 추가">${I.plus}</button>`;
+    const hint = key === 'past' && staleN && open ? `<div class="tt-hint">${I.hourglass}오래 밀린 일 ${staleN}개 · 처음 계획부터 7일 이상 지난 일을 위에 모았어요</div>` : '';
+    const filtered = ui.filter !== 'all' || ui.cat !== 'all' || ui.q;
+    const empty = filtered ? '조건에 맞는 할 일이 없어요.' : { past: '지난 계획이 없어요.', today: '오늘로 계획한 일이 없어요.', upcoming: '내일 이후로 계획한 일이 없어요.' }[key];
+    return `<section class="tt-section mod-${key}">
+      <div class="tt-section-head"><span class="tt-section-icon">${icon}</span><h3 class="tt-section-title">${label}</h3><span class="tt-count">${items.length}</span>
+        <div class="tt-section-tools"><button class="clickable-icon${open ? '' : ' is-collapsed'}" data-action="toggle-sec" data-sec="${key}" aria-expanded="${open}" aria-label="${label} ${open ? '접기' : '펼치기'}">${I.up}</button>${add}</div></div>
+      ${hint}
+      ${open ? `<div class="tt-list">${items.map(row).join('')}${done.map(row).join('')}${!items.length && !done.length ? `<div class="tt-empty">${empty}</div>` : ''}</div>` : ''}
+    </section>`;
+  }
+
+  function meta(v) {
+    const m = [];
+    if (v.status === 'open') {
+      if (v.stale) m.push(`<span class="tt-chip" title="처음 계획부터 ${v.age}일">${I.hourglass}${v.age}일째</span>`);
+      if (v.dl) m.push(`<span class="tt-chip${v.dl.kind === 'later' ? '' : ' is-strong'}">${I.flag}${esc(v.dl.short)}</span>`);
+      if (v.bucket !== 'today') m.push(`<span>${v.bucket === 'upcoming' ? `${md(v.cur)} (${wd(v.cur)})` : md(v.cur)}</span>`);
+    } else if (v.status === 'done') m.push(`<span>${md(v.done)} 완료</span>`);
+    else m.push(`<span>${md(v.cancelled)} 취소</span>`);
+    return m.join('');
+  }
+
+  function row(v) {
+    const sel = ui.expanded === v.id;
+    const mark = v.status === 'open'
+      ? `<button class="tt-check" data-action="complete" data-id="${v.id}" aria-label="완료로 기록: ${esc(v.title)}"></button>`
+      : `<button class="tt-check is-${v.status}" disabled aria-label="${v.status === 'done' ? '완료' : '취소'}">${v.status === 'done' ? I.check : I.minus}</button>`;
+    const pills = v.status === 'open'
+      ? `<div class="tt-pills"><button data-action="complete" data-id="${v.id}">${I.checkS} 완료</button><button data-action="menu" data-id="${v.id}" data-menu="date">${I.cal}${md(v.cur)}</button><button data-action="menu" data-id="${v.id}" aria-label="더 보기">${I.more}</button></div>`
+      : '';
+    return `<div class="tt-item is-${v.status}${sel ? ' is-selected' : ''}" data-item="${v.id}">
+      <div class="tt-row">${mark}<button class="tt-main" data-action="open" data-id="${v.id}" aria-expanded="${sel}"><span class="tt-item-title">${esc(v.title)}</span></button>
+        <span class="tt-meta">${meta(v)}</span>${pills}</div>
+      ${sel ? `<div class="tt-detail">${fields(v)}${actions(v)}</div>` : ''}
+    </div>`;
+  }
+
+  function fields(v) {
+    const dates = v.dates.map((x, i) => {
+      const isCur = i === v.dates.length - 1 && v.status === 'open';
+      const tag = i === 0 && v.dates.length > 1 ? '<small>처음</small>' : isCur ? '<small>현재</small>' : '';
+      return `<span class="tt-date${isCur ? ' is-current' : ''}">${md(x)} ${tag}</span>`;
+    }).join('');
+    const rows = [['계획 날짜', `<div class="tt-dates">${dates}</div>${v.status === 'open' ? `<div class="tt-help" style="margin-top:var(--size-2-3)">처음 계획부터 ${v.age}일${v.stale ? ' · 오래 밀린 일' : ''}</div>` : ''}`]];
+    if (v.deadline) rows.push(['마감일', `${mdLong(v.deadline.date)}${v.deadline.time ? ` ${v.deadline.time}` : ''}${v.dl && v.dl.kind === 'over' ? ' · 지남' : ''}`]);
+    if (v.status === 'done') rows.push(['완료한 날', mdLong(v.done)]);
+    if (v.status === 'cancelled') { rows.push(['취소한 날', mdLong(v.cancelled)]); rows.push(['이유', esc(v.reason)]); }
+    rows.push(['분류', v.cat ? esc(v.cat) : '<span class="tt-readonly">없음</span>']);
+    if (v.aliases.length) rows.push(['다른 이름', `${v.aliases.map(esc).join(', ')} <span class="tt-readonly">· 읽기 전용</span>`]);
+    rows.push(['메모', v.memo ? `<span class="tt-memo">${esc(v.memo)}</span>` : '<span class="tt-readonly">없음</span>']);
+    rows.push(['원본', `할일/${fileOf(v.first)}`]);
+    return `<dl class="tt-fields">${rows.map(([k, val]) => `<dt>${k}</dt><dd>${val}</dd>`).join('')}</dl>`;
+  }
+
+  function actions(v) {
+    const note = `<button data-action="note" data-id="${v.id}">${I.file} 노트에서 열기</button>`;
+    if (v.status !== 'open') return `<div class="tt-actions">${note}</div>`;
+    // 데스크톱은 행 오른쪽에 완료·날짜 버튼이 있으니 상세에는 넣지 않는다
+    const main = isPhone() ? `<button class="mod-cta" data-action="complete" data-id="${v.id}">${I.checkS} 완료</button><button data-action="pick-date" data-id="${v.id}">${I.calPlus} 날짜 추가</button>` : '';
+    return `<div class="tt-actions">${main}<button data-action="edit" data-id="${v.id}">${I.pencil} 편집</button>${note}<button class="mod-warning" data-action="cancel" data-id="${v.id}">취소…</button></div>`;
+  }
+
+  function recordsSection() {
+    const c = counts();
+    const items = records();
+    const chips = [['all', `전체 ${c.records}`], ['done', `완료 ${c.done}`], ['cancelled', `취소 ${c.cancelled}`]]
+      .map(([k, l]) => `<button class="${ui.recStatus === k ? 'is-active' : ''}" aria-pressed="${ui.recStatus === k}" data-action="rec-status" data-status="${k}">${l}</button>`).join('');
+    let out = '';
+    let cur = null;
+    let buf = [];
+    const flush = () => { if (cur) out += `<div class="tt-record-day">${mdLong(cur)}</div><div class="tt-list">${buf.map(row).join('')}</div>`; };
+    for (const v of items) {
+      const k = v.done || v.cancelled;
+      if (k !== cur) { flush(); cur = k; buf = []; }
+      buf.push(v);
+    }
+    flush();
+    return `<section class="tt-section"><div class="tt-section-head"><span class="tt-section-icon">${I.archive}</span><h3 class="tt-section-title">기록</h3><span class="tt-count">${items.length}</span>
+      <div class="tt-section-tools tt-filter-chips">${chips}</div></div>${out || '<div class="tt-empty">조건에 맞는 기록이 없어요.</div>'}</section>`;
+  }
+
+  function bar() {
+    const c = counts();
+    if (ui.searchOpen) {
+      return `<div class="tt-bar" role="search"><span class="tt-section-icon">${I.search}</span>
+        <input type="search" placeholder="제목·다른 이름 검색" aria-label="검색" data-bind="q" value="${esc(ui.q)}" data-autofocus>
+        <button class="clickable-icon" data-action="search-close" aria-label="검색 닫기">${I.x}</button></div>`;
+    }
+    return `<div class="tt-bar" role="toolbar" aria-label="보기 도구">
+      <button class="clickable-icon${ui.q ? ' is-active' : ''}" data-action="search-open" aria-label="검색">${I.search}</button><span class="tt-bar-sep"></span>
+      <button class="clickable-icon${ui.filter === 'deadline' ? ' is-active' : ''}" data-action="filter-toggle" aria-pressed="${ui.filter === 'deadline'}">${I.flag} 마감 ${c.deadline}</button>
+      <select class="dropdown" data-bind="cat" aria-label="분류">${['all', ...cats()].map((k) => `<option value="${esc(k)}"${ui.cat === k ? ' selected' : ''}>${k === 'all' ? '분류' : esc(k)}</option>`).join('')}</select></div>`;
+  }
+
+  // ── 메뉴와 모달 ───────────────────────────────
+  function layer() {
+    if (ui.menu) return menuHTML();
+    if (ui.modal) return `<div class="modal-container"><div class="modal-bg" data-action="close-modal"></div><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">${modalHTML()}</div></div>`;
+    return '';
+  }
+
+  function menuHTML() {
+    const t = decorate(find(ui.menu.id));
+    const has = (day) => t.dates.includes(day);
+    const item = (action, icon, title, extra = '') => `<button class="menu-item${action === 'cancel' ? ' is-warning' : ''}" data-action="${action}" data-id="${t.id}"${extra}><span class="menu-item-icon">${icon}</span>${title}</button>`;
+    const dateItems = [
+      item('add-date', I.sunS,`오늘 하기<span class="menu-item-hint">${md(TODAY)}</span>`, ` data-date="${TODAY}"${has(TODAY) ? ' disabled' : ''}`),
+      item('add-date', I.arrowRight, `내일 하기<span class="menu-item-hint">${md(TOMORROW)}</span>`, ` data-date="${TOMORROW}"${has(TOMORROW) ? ' disabled' : ''}`),
+      item('pick-date', I.cal, '날짜 선택…'),
+    ];
+    const sep = '<div class="menu-separator"></div>';
+    let items;
+    if (ui.menu.kind === 'date') items = dateItems;
+    else {
+      items = [];
+      if (t.status === 'open') items.push(...dateItems, sep, item('complete', I.checkS, '완료로 기록…'));
+      if (ui.expanded !== t.id) items.push(item('open', I.info, '상세 보기'));
+      if (t.status === 'open') items.push(item('edit', I.pencil, '편집…'));
+      items.push(item('note', I.file, '노트에서 열기'));
+      if (t.status === 'open') items.push(sep, item('cancel', I.ban, '취소…'));
+    }
+    const title = isPhone() ? `<div class="menu-title">${ui.menu.kind === 'date' ? '계획 날짜 추가 · ' : ''}${esc(t.title)}</div>` : '';
+    return `<div class="menu-layer" data-action="close-menu"><div class="menu" role="menu" style="left:${ui.menu.x}px;top:${ui.menu.y}px">${title}${items.join('')}</div></div>`;
+  }
+
+  function placeMenu() {
+    const m = app.querySelector('.menu');
+    if (!m || isPhone()) return;
+    if (ui.menu.y + m.offsetHeight > app.clientHeight - 8) m.style.top = `${Math.max(8, ui.menu.anchorTop - m.offsetHeight - 6)}px`;
+    if (ui.menu.x + m.offsetWidth > app.clientWidth - 8) m.style.left = `${Math.max(8, app.clientWidth - m.offsetWidth - 8)}px`;
+    const first = m.querySelector('.menu-item:not(:disabled)');
+    if (first) first.focus();
+  }
+
+  function modalHTML() {
+    const m = ui.modal;
+    const t = m.id ? decorate(find(m.id)) : null;
+    const close = `<button class="clickable-icon modal-close-button" data-action="close-modal" aria-label="닫기">${I.x}</button>`;
+    const foot = (label, cls = 'mod-cta', extra = '') => `<div class="tt-modal-actions"><button type="button" data-action="close-modal">돌아가기</button><button type="submit" class="${cls}"${extra}>${label}</button></div>`;
+    const catList = `<datalist id="cat-list">${cats().map((c) => `<option value="${esc(c)}"></option>`).join('')}</datalist>`;
+    if (m.type === 'complete') {
+      return `${close}<h3 class="modal-title" id="modal-title">완료로 기록</h3><p class="tt-modal-desc">${esc(t.title)}</p>
+        <form class="tt-form" data-form="complete"><label class="tt-field">완료한 날 <input type="date" name="date" value="${TODAY}" required data-autofocus></label>
+        <div class="tt-help">할일/${fileOf(t.first)}의 체크박스를 [x]로 바꾸고 “완료한 날”을 추가해요.</div>${foot('완료로 기록')}</form>`;
+    }
+    if (m.type === 'cancel') {
+      return `${close}<h3 class="modal-title" id="modal-title">할 일 취소</h3><p class="tt-modal-desc">${esc(t.title)}</p>
+        <form class="tt-form" data-form="cancel"><label class="tt-field">취소한 날 <input type="date" name="date" value="${TODAY}" required></label>
+        <label class="tt-field"><span>이유 <span class="tt-required">*</span></span><textarea name="reason" placeholder="더는 필요하지 않은 이유" required data-autofocus></textarea></label>
+        <div class="tt-help">못 했거나 마감이 지났다는 이유만으로는 취소하지 않아요. 날짜를 다시 정하려면 날짜 추가를 쓰세요.</div>${foot('취소로 기록', 'mod-warning', ' data-submit disabled')}</form>`;
+    }
+    if (m.type === 'date') {
+      return `${close}<h3 class="modal-title" id="modal-title">계획 날짜 추가</h3><p class="tt-modal-desc">${esc(t.title)}</p>
+        <form class="tt-form" data-form="date">
+        <div class="tt-quick"><button type="button" data-action="add-date" data-id="${t.id}" data-date="${TODAY}"${t.dates.includes(TODAY) ? ' disabled' : ''}>오늘 ${md(TODAY)}</button><button type="button" data-action="add-date" data-id="${t.id}" data-date="${TOMORROW}"${t.dates.includes(TOMORROW) ? ' disabled' : ''}>내일 ${md(TOMORROW)}</button></div>
+        <label class="tt-field">다른 날짜<input type="date" name="date" value="${addDays(TODAY, 2)}" data-autofocus></label>
+        <div class="tt-help">기존 날짜 ${t.dates.map(md).join(', ')}는 그대로 두고 새 날짜를 이력에 추가해요.</div>${foot('추가')}</form>`;
+    }
+    if (m.type === 'edit') {
+      return `${close}<h3 class="modal-title" id="modal-title">편집</h3><p class="tt-modal-desc">${esc(t.title)}</p>
+        <form class="tt-form" data-form="edit">
+        <label class="tt-field">외부 마감일<div class="tt-field-row"><input type="date" name="dlDate" value="${t.deadline ? t.deadline.date : ''}"><input type="time" name="dlTime" value="${t.deadline && t.deadline.time ? t.deadline.time : ''}" aria-label="마감 시각 (선택)"></div></label>
+        <label class="tt-field">분류<input type="text" name="cat" value="${esc(t.cat || '')}" list="cat-list" data-autofocus></label>
+        <label class="tt-field">메모<textarea name="memo">${esc(t.memo || '')}</textarea></label>
+        ${t.aliases.length ? `<div class="tt-help">다른 이름(${t.aliases.map(esc).join(', ')})은 플러그인에서 고치지 않아요. 노트에서 직접 수정하세요.</div>` : ''}
+        ${catList}${foot('저장')}</form>`;
+    }
+    if (m.type === 'new') {
+      const f = m.form || { title: '', date: m.date || TODAY, cat: '', dlDate: '', dlTime: '', memo: '' };
+      const dups = m.dups || [];
+      const dupBlock = dups.length ? `<div class="tt-callout"><strong>진행 중인 “${esc(f.title)}”이 이미 있어요.</strong> 어떻게 할까요?
+          ${dups.map((dv) => `<label><input type="radio" name="choice" value="${dv.id}"${m.choice === dv.id ? ' checked' : ''}> 기존 항목에 ${md(f.date)} 추가 (할일/${fileOf(dv.first)} · 처음 ${md(dv.first)})</label>`).join('')}
+          <label><input type="radio" name="choice" value="new"${m.choice === 'new' ? ' checked' : ''}> 새 항목으로 만들기 (할일/${fileOf(f.date)})</label></div>` : '';
+      return `${close}<h3 class="modal-title" id="modal-title">새 할 일</h3><p class="tt-modal-desc">처음 하기로 한 날의 월 파일에 추가해요.</p>
+        <form class="tt-form" data-form="new">
+        <label class="tt-field"><span>제목 <span class="tt-required">*</span></span><input type="text" name="title" value="${esc(f.title)}" required data-autofocus></label>
+        <label class="tt-field"><span>처음 하기로 한 날 <span class="tt-required">*</span></span><input type="date" name="date" value="${f.date}" required></label>
+        <label class="tt-field">분류<input type="text" name="cat" value="${esc(f.cat)}" list="cat-list" placeholder="${esc(cats().join(', '))}"></label>
+        <label class="tt-field">외부 마감일<div class="tt-field-row"><input type="date" name="dlDate" value="${f.dlDate}"><input type="time" name="dlTime" value="${f.dlTime}" aria-label="마감 시각 (선택)"></div></label>
+        <label class="tt-field">메모<textarea name="memo">${esc(f.memo)}</textarea></label>
+        ${catList}${dupBlock}${foot('추가')}</form>`;
+    }
+    return '';
+  }
+
+  // ── 동작 ───────────────────────────────────────
+  function notice(html) {
+    ui.notice = html;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => { ui.notice = null; render(); }, 3200);
+  }
+
+  function addDate(id, day) {
+    const t = find(id);
+    if (t.dates.includes(day)) { notice('이미 있는 계획 날짜예요.'); return; }
+    t.dates = [...t.dates, day].sort();
+    notice(`<b>${esc(t.title)}</b>에 ${md(day)}을 추가했어요.<br>할일/${fileOf(t.dates[0])}`);
+  }
+
+  function openMenu(id, el, kind) {
+    const fr = app.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    ui.menu = { id: Number(id), kind, x: Math.max(8, r.right - fr.left - 220), y: r.bottom - fr.top + 6, anchorTop: r.top - fr.top };
+    ui.modal = null;
+  }
+
+  app.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-action]');
+    if (!el || el.disabled) return;
+    const { action, id } = el.dataset;
+    if (action === 'close-menu' && e.target !== el) return;
+    switch (action) {
+      case 'tab': ui.tab = el.dataset.tab; ui.expanded = null; break;
+      case 'toggle-sec': ui.collapsed[el.dataset.sec] = !ui.collapsed[el.dataset.sec]; break;
+      case 'filter-toggle': ui.filter = ui.filter === 'deadline' ? 'all' : 'deadline'; break;
+      case 'rec-status': ui.recStatus = el.dataset.status; break;
+      case 'search-open': ui.searchOpen = true; break;
+      case 'search-close': ui.searchOpen = false; ui.q = ''; break;
+      case 'menu': openMenu(id, el, el.dataset.menu); break;
+      case 'close-menu': ui.menu = null; break;
+      case 'close-modal': ui.modal = null; break;
+      case 'open': ui.menu = null; ui.expanded = ui.expanded === Number(id) ? null : Number(id); break;
+      case 'complete': ui.menu = null; ui.modal = { type: 'complete', id: Number(id) }; break;
+      case 'cancel': ui.menu = null; ui.modal = { type: 'cancel', id: Number(id) }; break;
+      case 'edit': ui.menu = null; ui.modal = { type: 'edit', id: Number(id) }; break;
+      case 'pick-date': ui.menu = null; ui.modal = { type: 'date', id: Number(id) }; break;
+      case 'add-date': ui.menu = null; ui.modal = null; addDate(id, el.dataset.date); break;
+      case 'note': ui.menu = null; notice(`할일/${fileOf(find(id).dates[0])}의 “${esc(find(id).title)}” 줄로 이동해요. (시안에서는 이동하지 않아요)`); break;
+      case 'new': ui.menu = null; ui.modal = { type: 'new', date: el.dataset.date }; break;
+      default: return;
+    }
+    render();
+  });
+
+  // 오른쪽 클릭(휴대폰에서는 길게 누르기)으로도 메뉴를 연다
+  app.addEventListener('contextmenu', (e) => {
+    const item = e.target.closest('[data-item]');
+    if (!item) return;
+    e.preventDefault();
+    const fr = app.getBoundingClientRect();
+    ui.menu = { id: Number(item.dataset.item), x: e.clientX - fr.left, y: e.clientY - fr.top, anchorTop: e.clientY - fr.top };
+    ui.modal = null;
+    render();
+  });
+
+  app.addEventListener('input', (e) => {
+    const f = e.target.closest('form[data-form="cancel"]');
+    if (f) f.querySelector('[data-submit]').disabled = !f.reason.value.trim();
+    if (e.target.dataset.bind === 'q') { ui.q = e.target.value; render(); }
+    if (e.target.name === 'choice' && ui.modal && ui.modal.type === 'new') ui.modal.choice = e.target.value === 'new' ? 'new' : Number(e.target.value);
+  });
+
+  app.addEventListener('change', (e) => {
+    if (e.target.dataset.bind !== 'cat') return;
+    ui.cat = e.target.value;
+    render();
+  });
+
+  app.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const type = form.dataset.form;
+    const t = ui.modal && ui.modal.id ? find(ui.modal.id) : null;
+    if (type === 'complete') {
+      t.status = 'done'; t.done = form.date.value || TODAY;
+      ui.modal = null; ui.expanded = null;
+      notice(`<b>${esc(t.title)}</b>을 완료로 기록했어요.<br>할일/${fileOf(t.dates[0])} · 미완료 값도 다시 계산`);
+    } else if (type === 'cancel') {
+      if (!form.reason.value.trim()) return;
+      t.status = 'cancelled'; t.cancelled = form.date.value || TODAY; t.reason = form.reason.value.trim();
+      ui.modal = null; ui.expanded = null;
+      notice(`<b>${esc(t.title)}</b>을 취소로 기록했어요.`);
+    } else if (type === 'date') {
+      if (!form.date.value) return;
+      ui.modal = null; addDate(t.id, form.date.value);
+    } else if (type === 'edit') {
+      t.deadline = form.dlDate.value ? { date: form.dlDate.value, time: form.dlTime.value || null } : null;
+      t.cat = form.cat.value.trim() || null;
+      t.memo = form.memo.value.trim() || null;
+      ui.modal = null;
+      notice(`<b>${esc(t.title)}</b>을 저장했어요.`);
+    } else if (type === 'new') {
+      const f = { title: form.title.value.trim(), date: form.date.value, cat: form.cat.value.trim(), dlDate: form.dlDate.value, dlTime: form.dlTime.value, memo: form.memo.value.trim() };
+      if (!f.title || !f.date) return;
+      const dups = tasks.filter((x) => x.status === 'open' && x.title === f.title).map(decorate);
+      if (dups.length && !ui.modal.choice) { ui.modal = { type: 'new', form: f, dups, choice: null }; render(); return; }
+      if (dups.length && ui.modal.choice !== 'new') {
+        const target = ui.modal.choice;
+        ui.modal = null;
+        addDate(target, f.date);
+      } else {
+        const existed = tasks.some((x) => fileOf(x.dates[0]) === fileOf(f.date));
+        tasks.push({ id: Math.max(0, ...tasks.map((x) => x.id)) + 1, status: 'open', title: f.title, dates: [f.date], cat: f.cat || null, deadline: f.dlDate ? { date: f.dlDate, time: f.dlTime || null } : null, memo: f.memo || null, aliases: [], done: null, cancelled: null, reason: null });
+        showEmpty = false;
+        ui.modal = null;
+        notice(existed ? `할일/${fileOf(f.date)}에 추가했어요.` : `할일/${fileOf(f.date)}을 만들고 추가했어요.`);
+      }
+    }
+    render();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (ui.menu || ui.modal) { ui.menu = null; ui.modal = null; render(); }
+    else if (ui.searchOpen) { ui.searchOpen = false; render(); }
+  });
+
+  // ── 시안 컨트롤 ───────────────────────────────
+  document.querySelector('.mock-panel').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-mock]');
+    if (!b) return;
+    const k = b.dataset.mock;
+    if (k === 'empty') showEmpty = !showEmpty;
+    else if (k === 'reset') { tasks = sample(); showEmpty = false; ui = freshUi(); }
+    else { M[k] = b.value; saveMock(); }
+    ui.menu = null;
+    ui.modal = null;
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
