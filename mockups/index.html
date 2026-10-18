@@ -680,7 +680,8 @@
 
   function menuHTML() {
     const t = decorate(find(ui.menu.id));
-    const has = (day) => t.dates.includes(day);
+    // 이미 계획한 날짜와 현재 계획 날짜보다 앞선 날짜는 더할 수 없다.
+    const has = (day) => t.dates.includes(day) || day < t.cur;
     const item = (action, icon, title, extra = '') => `<button class="menu-item${action === 'cancel' ? ' is-warning' : ''}" data-action="${action}" data-id="${t.id}"${extra}><span class="menu-item-icon">${icon}</span>${title}</button>`;
     const dateItems = [
       item('add-date', I.sunS,`오늘 하기<span class="menu-item-hint">${md(TODAY)}</span>`, ` data-date="${TODAY}"${has(TODAY) ? ' disabled' : ''}`),
@@ -731,7 +732,7 @@
     if (m.type === 'date') {
       return `${close}<h3 class="modal-title" id="modal-title">계획 날짜 추가</h3><p class="tt-modal-desc">${esc(t.title)}</p>
         <form class="tt-form" data-form="date">
-        <div class="tt-quick"><button type="button" data-action="add-date" data-id="${t.id}" data-date="${TODAY}"${t.dates.includes(TODAY) ? ' disabled' : ''}>오늘 ${md(TODAY)}</button><button type="button" data-action="add-date" data-id="${t.id}" data-date="${TOMORROW}"${t.dates.includes(TOMORROW) ? ' disabled' : ''}>내일 ${md(TOMORROW)}</button></div>
+        <div class="tt-quick"><button type="button" data-action="add-date" data-id="${t.id}" data-date="${TODAY}"${t.dates.includes(TODAY) || TODAY < t.cur ? ' disabled' : ''}>오늘 ${md(TODAY)}</button><button type="button" data-action="add-date" data-id="${t.id}" data-date="${TOMORROW}"${t.dates.includes(TOMORROW) || TOMORROW < t.cur ? ' disabled' : ''}>내일 ${md(TOMORROW)}</button></div>
         <label class="tt-field">다른 날짜<input type="date" name="date" value="${addDays(TODAY, 2)}" data-autofocus></label>
         <div class="tt-help">기존 날짜 ${t.dates.map(md).join(', ')}는 그대로 두고 새 날짜를 이력에 추가해요.</div>${foot('추가')}</form>`;
     }
@@ -771,7 +772,9 @@
 
   function addDate(id, day) {
     const t = find(id);
-    if (t.dates.includes(day)) { notice('이미 있는 계획 날짜예요.'); return; }
+    if (t.dates.includes(day)) { notice('이미 계획한 날짜예요.'); return; }
+    const latest = t.dates[t.dates.length - 1];
+    if (day < latest) { notice(`현재 계획 날짜(${md(latest)})보다 뒤의 날짜만 추가할 수 있어요.`); return; }
     t.dates = [...t.dates, day].sort();
     notice(`<b>${esc(t.title)}</b>에 ${md(day)}을 추가했어요.<br>할일/${fileOf(t.dates[0])}`);
   }
