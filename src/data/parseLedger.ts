@@ -1,52 +1,14 @@
 import { isValidDate, isValidTime } from "../logic/dates";
+import { FIELD, INDENTED_RE, KNOWN_FIELDS, PROPERTY_RE, TASK_HEADER_RE, indentOf, splitLines, type Line } from "./ledgerSyntax";
 import type { Deadline, LedgerFrontmatter, ParsedLedger, ProblemCode, TaskProblem, TaskRecord, TaskStatus } from "./types";
 
-interface Line {
-  /** 줄 끝의 \r을 뺀 내용 */
-  text: string;
-  start: number;
-  /** 줄바꿈과 \r을 뺀 끝 위치 */
-  end: number;
-}
-
-const TASK_HEADER_RE = /^- \[([^\]]*)\][ \t]*(.*)$/;
-const PROPERTY_RE = /^[ \t]+- ([^:]+?):[ \t]*(.*)$/;
-const INDENTED_RE = /^[ \t]+\S/;
 const DEADLINE_RE = /^(\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}))?$/;
 const LEDGER_FILE_RE = /^(\d{4}-(?:0[1-9]|1[0-2]))\.md$/;
-
-const FIELD = {
-  planned: "하기로 한 날",
-  completed: "완료한 날",
-  cancelled: "취소한 날",
-  reason: "이유",
-  category: "분류",
-  alias: "다른 이름",
-  deadline: "마감일",
-  memo: "메모",
-} as const;
-
-const KNOWN_FIELDS: ReadonlySet<string> = new Set(Object.values(FIELD));
 
 /** `할일/2026-10.md` 같은 경로에서 `2026-10`을 꺼낸다. 월 장부 파일 이름이 아니면 null */
 export function ledgerMonthOfPath(path: string): string | null {
   const name = path.slice(path.lastIndexOf("/") + 1);
   return LEDGER_FILE_RE.exec(name)?.[1] ?? null;
-}
-
-function splitLines(content: string): Line[] {
-  const lines: Line[] = [];
-  let pos = 0;
-  for (;;) {
-    const nl = content.indexOf("\n", pos);
-    const lineEnd = nl === -1 ? content.length : nl;
-    const raw = content.slice(pos, lineEnd);
-    const text = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
-    lines.push({ text, start: pos, end: pos + text.length });
-    if (nl === -1) break;
-    pos = nl + 1;
-  }
-  return lines;
 }
 
 /** 파일 첫 줄이 `---`이면 닫는 `---`까지를 frontmatter로 본다. 본문 시작 줄 번호도 돌려준다. */
@@ -126,7 +88,6 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
   };
 
   // 첫 속성 줄의 들여쓰기를 기준으로 삼는다. 더 깊게 들여쓴 줄은 하위 목록이므로 속성으로 보지 않는다.
-  const indentOf = (text: string) => /^[ \t]*/.exec(text)?.[0] ?? "";
   const baseIndent = indentOf(lines[first + 1]?.text ?? "");
 
   for (const line of lines.slice(first + 1, last + 1)) {
@@ -177,6 +138,11 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
   return task;
 }
 
+/** frontmatter `미완료`의 기준. 체크박스 기호가 올바른 `[ ]` 항목이 하나라도 있으면 true */
+export function hasOpenTask(tasks: TaskRecord[]): boolean {
+  return tasks.some((t) => t.status === "open" && !t.problems.some((p) => p.code === "checkbox"));
+}
+
 /** 월 파일 본문에서 frontmatter와 최상위 체크리스트 항목을 읽는다. 잘못된 항목도 버리지 않는다. */
 export function parseLedger(path: string, content: string): ParsedLedger {
   const issues: string[] = [];
@@ -203,7 +169,7 @@ export function parseLedger(path: string, content: string): ParsedLedger {
     else if (fileMonth !== null && frontmatter.month !== fileMonth) {
       issues.push(`frontmatter 월(${frontmatter.month})이 파일 이름(${fileMonth})과 다름`);
     }
-    const hasOpen = tasks.some((t) => t.status === "open" && !t.problems.some((p) => p.code === "checkbox"));
+    const hasOpen = hasOpenTask(tasks);
     if (frontmatter.hasOpen !== null && frontmatter.hasOpen !== hasOpen) {
       issues.push(`frontmatter 미완료(${frontmatter.hasOpen})가 본문(${hasOpen})과 다름`);
     }
