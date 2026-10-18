@@ -90,6 +90,81 @@ export const T = {
     noTitle: "(제목 없음)",
   },
 
+  newTask: "새 할 일",
+  more: "더 보기",
+  addTo: (name: string) => `${name}에 추가`,
+  completeMark: (title: string) => `완료로 기록: ${title}`,
+
+  action: {
+    complete: "완료",
+    addDate: "날짜 추가",
+    edit: "편집",
+    cancel: "취소…",
+  },
+
+  menu: {
+    today: "오늘 하기",
+    tomorrow: "내일 하기",
+    pickDate: "날짜 선택…",
+    complete: "완료로 기록…",
+    edit: "편집…",
+    openNote: "노트에서 열기",
+    cancel: "취소…",
+  },
+
+  form: {
+    back: "돌아가기",
+    completeTitle: "완료로 기록",
+    cancelTitle: "할 일 취소",
+    dateTitle: "계획 날짜 추가",
+    editTitle: "편집",
+    createTitle: "새 할 일",
+
+    completedOn: "완료한 날",
+    completeHelp: (file: string) => `${file}의 체크박스를 [x]로 바꾸고 완료한 날을 추가해요.`,
+    completeSubmit: "완료로 기록",
+
+    cancelledOn: "취소한 날",
+    reason: "이유",
+    reasonPlaceholder: "더는 필요하지 않은 이유",
+    cancelHelp: "못 했거나 마감이 지났다는 이유만으로는 취소하지 않아요. 날짜를 다시 정하려면 날짜 추가를 쓰세요.",
+    cancelSubmit: "취소로 기록",
+
+    today: (date: string) => `오늘 ${date}`,
+    tomorrow: (date: string) => `내일 ${date}`,
+    otherDate: "다른 날짜",
+    dateHelp: (dates: string) => `기존 날짜 ${dates}는 그대로 두고 새 날짜를 이력에 추가해요.`,
+    dateSubmit: "추가",
+
+    deadline: "외부 마감일",
+    deadlineTime: "마감 시각 (선택)",
+    category: "분류",
+    memo: "메모",
+    aliasNote: (alias: string) => `다른 이름(${alias})은 플러그인에서 고치지 않아요. 노트에서 직접 수정하세요.`,
+    editSubmit: "저장",
+
+    createDesc: "처음 하기로 한 날의 월 파일에 추가해요.",
+    titleLabel: "제목",
+    firstDate: "처음 하기로 한 날",
+    createSubmit: "추가",
+    duplicateTitle: (title: string) => `진행 중인 같은 제목이 이미 있어요: ${title}`,
+    duplicateAsk: "어떻게 할까요?",
+    addDateToExisting: (date: string, file: string, first: string) => `기존 항목에 ${date} 추가 (${file} · 처음 ${first})`,
+    createNew: (file: string) => `새 항목으로 만들기 (${file})`,
+    chooseFirst: "기존 항목에 날짜를 추가할지, 새로 만들지 골라 주세요.",
+    deadlineNeedsDate: "마감 시각만 있을 수 없어요. 마감 날짜를 함께 입력해 주세요.",
+    required: "필수",
+  },
+
+  notice: {
+    completed: (title: string) => `완료로 기록했어요: ${title}`,
+    cancelled: (title: string) => `취소로 기록했어요: ${title}`,
+    dateAdded: (title: string, date: string) => `${date} 추가: ${title}`,
+    updated: (title: string) => `저장했어요: ${title}`,
+    created: (file: string) => `${file}에 추가했어요`,
+    failed: "저장하지 못했어요",
+  },
+
   settings: {
     folderName: "장부 폴더",
     folderDesc: "월별 장부 파일(YYYY-MM.md)이 있는 폴더예요. 비워 두면 vault 루트를 읽어요.",

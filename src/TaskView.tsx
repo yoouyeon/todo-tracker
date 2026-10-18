@@ -33,7 +33,7 @@ export class TaskView extends ItemView {
     this.root = createRoot(this.contentEl);
     this.root.render(
       <StrictMode>
-        <App store={this.plugin.store} onOpenNote={(task) => void this.plugin.openNote(task)} />
+        <App store={this.plugin.store} host={this.plugin.host} />
       </StrictMode>,
     );
   }

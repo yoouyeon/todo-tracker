@@ -86,6 +86,30 @@ body:not(.is-mobile) .tt-item:hover {
 .tt-check.is-problem {
   border-color: transparent;
 }
+.tt-check.is-open:hover {
+  border-color: var(--interactive-accent);
+}
+
+/* 마우스를 올리거나 항목을 펼치면 부가 정보 자리에 완료·날짜·더 보기 버튼을 보여 준다. */
+.tt-pills {
+  display: none;
+  flex: none;
+  align-items: center;
+  gap: var(--size-2-3);
+}
+body:not(.is-mobile) .tt-item.is-open:is(:hover, .is-selected, :focus-within) .tt-pills {
+  display: flex;
+}
+body:not(.is-mobile) .tt-item.is-open:is(:hover, .is-selected, :focus-within) .tt-meta {
+  display: none;
+}
+/* 마우스를 올릴 수 없는 모바일에서만 상세에 보이는 버튼 */
+.tt-touch-only {
+  display: none;
+}
+body.is-mobile .tt-touch-only {
+  display: inline-flex;
+}
 /* 제목은 본문 글자와 같은 모양이다. 버튼처럼 보이는 테두리, 그림자, 굵기를 주지 않는다. */
 .tt-plain {
   cursor: pointer;

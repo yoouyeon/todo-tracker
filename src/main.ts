@@ -1,13 +1,18 @@
 import { Notice, Plugin, TFile } from "obsidian";
+import { TaskActions } from "./data/actions";
 import { TaskStore } from "./data/taskStore";
 import type { TaskRecord } from "./data/types";
+import { createHost } from "./obsidian/host";
+import { createVaultWriter } from "./obsidian/vaultWriter";
 import { DEFAULT_SETTINGS, TodoTrackerSettingTab, type TodoTrackerSettings } from "./settings/settings";
 import { TaskView, VIEW_TYPE } from "./TaskView";
+import type { AppHost } from "./ui/host";
 import { T } from "./ui/strings";
 
 export default class TodoTrackerPlugin extends Plugin {
   settings: TodoTrackerSettings = { ...DEFAULT_SETTINGS };
   store!: TaskStore;
+  host!: AppHost;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -19,6 +24,8 @@ export default class TodoTrackerPlugin extends Plugin {
       },
       () => this.settings.folder,
     );
+    const actions = new TaskActions(createVaultWriter(this.app), () => this.settings.folder);
+    this.host = createHost({ app: this.app, store: this.store, actions, openNote: (task) => this.openNote(task) });
 
     this.registerView(VIEW_TYPE, (leaf) => new TaskView(leaf, this));
     this.addRibbonIcon("list-checks", T.ribbonTitle, () => void this.activateView());

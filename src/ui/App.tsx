@@ -1,10 +1,10 @@
 import { useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { LedgerSource } from "../data/taskStore";
-import type { TaskRecord } from "../data/types";
-import { formatLocalDate, formatLocalTime } from "../logic/dates";
+import { addDays, formatLocalDate, formatLocalTime } from "../logic/dates";
 import { formatLongDate } from "../logic/format";
 import { buildBoard, type RecordStatusFilter, type TaskItem } from "../logic/selectors";
 import { FilterBar } from "./FilterBar";
+import type { AppHost } from "./host";
 import { Icon } from "./Icon";
 import { Section } from "./Section";
 import { StatCards, type Tab } from "./StatCards";
@@ -14,7 +14,7 @@ import { useNow } from "./useNow";
 
 export interface AppProps {
   store: LedgerSource;
-  onOpenNote: (task: TaskRecord) => void;
+  host: AppHost;
   /** 테스트에서 시각을 고정할 때 바꾼다. */
   getNow?: () => Date;
   /** 테스트에서 특정 탭으로 바로 열 때 바꾼다. */
@@ -23,7 +23,7 @@ export interface AppProps {
 
 const defaultNow = () => new Date();
 
-export function App({ store, onOpenNote, getNow = defaultNow, initialTab = "all" }: AppProps) {
+export function App({ store, host, getNow = defaultNow, initialTab = "all" }: AppProps) {
   const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const now = useNow(getNow);
   const today = formatLocalDate(now);
@@ -45,7 +45,11 @@ export function App({ store, onOpenNote, getNow = defaultNow, initialTab = "all"
   );
 
   if (!snapshot.loaded) {
-    return <div className="tt-view"><div className="tt-blank">{T.loading}</div></div>;
+    return (
+      <div className="tt-view">
+        <div className="tt-blank">{T.loading}</div>
+      </div>
+    );
   }
 
   const { counts } = board;
@@ -55,19 +59,30 @@ export function App({ store, onOpenNote, getNow = defaultNow, initialTab = "all"
   const toggleExpanded = (key: string) => setExpanded((prev) => (prev === key ? null : key));
 
   const rows = (items: TaskItem[]) =>
-    items.map((item) => <TaskRow key={item.key} item={item} expanded={expanded === item.key} onToggle={() => toggleExpanded(item.key)} onOpenNote={onOpenNote} />);
+    items.map((item) => <TaskRow key={item.key} item={item} today={today} expanded={expanded === item.key} onToggle={() => toggleExpanded(item.key)} host={host} />);
   const list = (items: TaskItem[], empty: string) =>
     items.length > 0 ? <div className="tt-list">{rows(items)}</div> : <div className="tt-empty">{filtered ? T.emptyFiltered : empty}</div>;
+  const addButton = (name: string, date: string) => (
+    <button type="button" className="clickable-icon" aria-label={T.addTo(name)} onClick={() => host.newTask(date)}>
+      <Icon name="plus" />
+    </button>
+  );
 
   const show = (key: Exclude<Tab, "all" | "records">) => tab === "all" || tab === key;
   const staleInPast = board.past.filter((i) => i.stale).length;
 
   const header = (
     <div className="tt-head">
-      <h2 className="tt-title">{T.title}</h2>
-      <div className="tt-sub">
-        {formatLongDate(today)} · {T.todaySummary(todayTotal, counts.doneToday)}
+      <div className="tt-head-text">
+        <h2 className="tt-title">{T.title}</h2>
+        <div className="tt-sub">
+          {formatLongDate(today)} · {T.todaySummary(todayTotal, counts.doneToday)}
+        </div>
       </div>
+      <button type="button" className="mod-cta tt-new" aria-label={T.newTask} onClick={() => host.newTask(today)}>
+        <Icon name="plus" />
+        <span className="tt-new-label">{T.newTask}</span>
+      </button>
     </div>
   );
 
@@ -96,7 +111,7 @@ export function App({ store, onOpenNote, getNow = defaultNow, initialTab = "all"
       />
       {tab !== "all" && (
         <div className="tt-scope">
-          {T.scope(T.stat[tab])} ·{" "}
+          {T.scope(T.stat[tab])} ·
           <button type="button" onClick={() => setTab("all")}>
             {T.showAll}
           </button>
@@ -124,7 +139,14 @@ export function App({ store, onOpenNote, getNow = defaultNow, initialTab = "all"
       )}
 
       {show("today") && (
-        <Section title={T.stat.today} icon="sun" count={board.today.length} collapsed={!!collapsed.today} onToggle={() => toggleCollapsed("today")}>
+        <Section
+          title={T.stat.today}
+          icon="sun"
+          count={board.today.length}
+          collapsed={!!collapsed.today}
+          onToggle={() => toggleCollapsed("today")}
+          tools={addButton(T.stat.today, today)}
+        >
           {board.today.length + board.doneToday.length > 0 ? (
             <div className="tt-list">
               {rows(board.today)}
@@ -137,7 +159,14 @@ export function App({ store, onOpenNote, getNow = defaultNow, initialTab = "all"
       )}
 
       {show("upcoming") && (
-        <Section title={T.stat.upcoming} icon="calendar" count={board.upcoming.length} collapsed={!!collapsed.upcoming} onToggle={() => toggleCollapsed("upcoming")}>
+        <Section
+          title={T.stat.upcoming}
+          icon="calendar"
+          count={board.upcoming.length}
+          collapsed={!!collapsed.upcoming}
+          onToggle={() => toggleCollapsed("upcoming")}
+          tools={addButton(T.stat.upcoming, addDays(today, 1))}
+        >
           {list(board.upcoming, T.emptyUpcoming)}
         </Section>
       )}
@@ -182,7 +211,7 @@ export function App({ store, onOpenNote, getNow = defaultNow, initialTab = "all"
         >
           <div className="tt-list">
             {board.problems.map((item) => (
-              <ProblemRow key={item.key} item={item} onOpenNote={onOpenNote} />
+              <ProblemRow key={item.key} item={item} host={host} />
             ))}
             {board.fileIssues.map((issue) => (
               <div key={issue} className="tt-file-issue">

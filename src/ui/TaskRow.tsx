@@ -1,16 +1,17 @@
-import type { TaskRecord } from "../data/types";
 import { formatLongDate, formatMonthDay, weekdayOf } from "../logic/format";
 import type { TaskItem } from "../logic/selectors";
 import { cx } from "./cx";
+import type { AppHost } from "./host";
 import { Icon } from "./Icon";
 import { PlainButton } from "./PlainButton";
 import { T } from "./strings";
 
 interface RowProps {
   item: TaskItem;
+  today: string;
   expanded: boolean;
   onToggle: () => void;
-  onOpenNote: (task: TaskRecord) => void;
+  host: AppHost;
 }
 
 /** 오른쪽에 놓는 부가 정보. 오래 밀림·마감 칩과 날짜 */
@@ -43,35 +44,61 @@ function Meta({ item }: { item: TaskItem }) {
   );
 }
 
-function CheckMark({ status }: { status: TaskRecord["status"] }) {
-  const label = status === "done" ? T.doneMark : status === "cancelled" ? T.cancelledMark : T.openMark;
+/** 진행 중이면 눌러서 완료할 수 있는 체크, 끝난 항목이면 상태만 보여 주는 표시 */
+function CheckMark({ item, today, host }: { item: TaskItem; today: string; host: AppHost }) {
+  const { task } = item;
+  if (task.status === "open") {
+    return <PlainButton className="tt-check is-open" label={T.completeMark(task.title)} onClick={() => host.complete(task, today)} />;
+  }
+  const label = task.status === "done" ? T.doneMark : T.cancelledMark;
   return (
-    <span className={cx("tt-check", `is-${status}`)} role="img" aria-label={label}>
-      {status === "done" && <Icon name="check" />}
-      {status === "cancelled" && <Icon name="minus" />}
+    <span className={cx("tt-check", `is-${task.status}`)} role="img" aria-label={label}>
+      <Icon name={task.status === "done" ? "check" : "minus"} />
     </span>
   );
 }
 
-export function TaskRow({ item, expanded, onToggle, onOpenNote }: RowProps) {
+export function TaskRow({ item, today, expanded, onToggle, host }: RowProps) {
   const { task } = item;
+  const open = task.status === "open";
   return (
-    <div className={cx("tt-item", `is-${task.status}`, expanded && "is-selected")}>
+    <div
+      className={cx("tt-item", `is-${task.status}`, expanded && "is-selected")}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        host.showMenu(e.nativeEvent, task, today, "task");
+      }}
+    >
       <div className="tt-row">
-        <CheckMark status={task.status} />
+        <CheckMark item={item} today={today} host={host} />
         <PlainButton className="tt-main" expanded={expanded} onClick={onToggle}>
           <span className="tt-item-title">{task.title}</span>
         </PlainButton>
         <span className="tt-meta">
           <Meta item={item} />
         </span>
+        {open && (
+          <span className="tt-pills">
+            <button type="button" onClick={() => host.complete(task, today)}>
+              <Icon name="check" />
+              {T.action.complete}
+            </button>
+            <button type="button" onClick={(e) => host.showMenu(e.nativeEvent, task, today, "date")}>
+              <Icon name="calendar" />
+              {item.current ? formatMonthDay(item.current) : T.action.addDate}
+            </button>
+            <button type="button" className="clickable-icon" aria-label={T.more} onClick={(e) => host.showMenu(e.nativeEvent, task, today, "task")}>
+              <Icon name="ellipsis" />
+            </button>
+          </span>
+        )}
       </div>
-      {expanded && <TaskDetail item={item} onOpenNote={onOpenNote} />}
+      {expanded && <TaskDetail item={item} today={today} host={host} />}
     </div>
   );
 }
 
-function TaskDetail({ item, onOpenNote }: { item: TaskItem; onOpenNote: (task: TaskRecord) => void }) {
+function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host: AppHost }) {
   const { task } = item;
   const last = task.plannedDates.length - 1;
   const open = task.status === "open";
@@ -149,17 +176,39 @@ function TaskDetail({ item, onOpenNote }: { item: TaskItem; onOpenNote: (task: T
         <dd>{task.sourcePath}</dd>
       </dl>
       <div className="tt-actions">
-        <button type="button" onClick={() => onOpenNote(task)}>
+        {open && (
+          <>
+            {/* 마우스를 올릴 수 없는 모바일에는 행 버튼이 없으므로 완료와 날짜 추가도 여기에 둔다. */}
+            <button type="button" className="mod-cta tt-touch-only" onClick={() => host.complete(task, today)}>
+              <Icon name="check" />
+              {T.action.complete}
+            </button>
+            <button type="button" className="tt-touch-only" onClick={() => host.pickDate(task, today)}>
+              <Icon name="calendar-plus" />
+              {T.action.addDate}
+            </button>
+            <button type="button" onClick={() => host.edit(task)}>
+              <Icon name="pencil" />
+              {T.action.edit}
+            </button>
+          </>
+        )}
+        <button type="button" onClick={() => host.openNote(task)}>
           <Icon name="file-text" />
           {T.openNote}
         </button>
+        {open && (
+          <button type="button" className="mod-warning" onClick={() => host.cancel(task, today)}>
+            {T.action.cancel}
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
 /** 읽을 수 없는 항목. 원문을 열어 고칠 수 있게 이유와 노트 링크를 항상 보여 준다. */
-export function ProblemRow({ item, onOpenNote }: { item: TaskItem; onOpenNote: (task: TaskRecord) => void }) {
+export function ProblemRow({ item, host }: { item: TaskItem; host: AppHost }) {
   const { task } = item;
   return (
     <div className="tt-item is-problem">
@@ -176,7 +225,7 @@ export function ProblemRow({ item, onOpenNote }: { item: TaskItem; onOpenNote: (
           </ul>
           <span className="tt-help">{task.sourcePath}</span>
         </div>
-        <button type="button" onClick={() => onOpenNote(task)}>
+        <button type="button" onClick={() => host.openNote(task)}>
           <Icon name="file-text" />
           {T.openNote}
         </button>

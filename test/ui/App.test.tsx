@@ -1,35 +1,22 @@
-import { readFileSync } from "node:fs";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
-import { parseLedger } from "../../src/data/parseLedger";
-import type { LedgerSnapshot, LedgerSource } from "../../src/data/taskStore";
+import { describe, expect, it } from "vitest";
+import type { LedgerSnapshot } from "../../src/data/taskStore";
 import { App } from "../../src/ui/App";
 import type { Tab } from "../../src/ui/StatCards";
-
-// `obsidian`은 타입만 있는 패키지라 런타임 모듈이 없다. 아이콘 그리기만 비워 둔다.
-vi.mock("obsidian", () => ({ setIcon: () => {} }));
-
-const fixture = (name: string) => readFileSync(new URL(`../fixtures/${name}`, import.meta.url), "utf8");
-const now = () => new Date(2026, 9, 18, 19, 0);
+import { NOW, createHostStub, createSource, loaded } from "./support";
 
 function render(snapshot: LedgerSnapshot, initialTab?: Tab): string {
-  const store: LedgerSource = { subscribe: () => () => {}, getSnapshot: () => snapshot };
   // 서버 렌더링이 글자 사이에 넣는 주석을 지워서 화면에 보이는 글만 남긴다.
-  return renderToString(<App store={store} onOpenNote={() => {}} getNow={now} initialTab={initialTab} />).replace(/<!-- -->/g, "");
+  return renderToString(<App store={createSource(snapshot)} host={createHostStub()} getNow={NOW} initialTab={initialTab} />).replace(/<!-- -->/g, "");
 }
-
-const loaded: LedgerSnapshot = {
-  loaded: true,
-  folder: "할일",
-  ledgers: [parseLedger("할일/2026-09.md", fixture("2026-09.md")), parseLedger("할일/2026-10.md", fixture("2026-10.md"))],
-};
 
 describe("App 렌더링", () => {
   const html = render(loaded);
 
-  it("머리말에 날짜와 오늘 요약을 보여 준다", () => {
+  it("머리말에 날짜와 오늘 요약과 새 할 일 버튼을 보여 준다", () => {
     expect(html).toContain("10월 18일 (일)");
     expect(html).toContain("오늘 3개 중 1개 완료");
+    expect(html).toMatch(/<button type="button" class="mod-cta tt-new" aria-label="새 할 일">/);
   });
 
   it("요약 카드 네 개를 보여 준다", () => {
@@ -45,6 +32,12 @@ describe("App 렌더링", () => {
     expect(html).toContain("오래 밀린 일 2개");
   });
 
+  it("오늘과 예정 머리글에 추가 버튼이 있고 지난 계획에는 없다", () => {
+    expect(html).toContain('aria-label="오늘에 추가"');
+    expect(html).toContain('aria-label="예정에 추가"');
+    expect(html).not.toContain('aria-label="지난 계획에 추가"');
+  });
+
   it("오래 밀림과 마감을 색 대신 칩 글자로 보여 준다", () => {
     expect(html).toContain("20일째");
     expect(html).toContain("9일째");
@@ -52,8 +45,15 @@ describe("App 렌더링", () => {
     expect(html).toContain("10/28 마감");
   });
 
-  it("오늘 완료한 일을 취소선 항목으로 남긴다", () => {
+  it("진행 중 항목에는 눌러서 완료하는 체크와 행 버튼이 있다", () => {
+    expect(html).toContain('aria-label="완료로 기록: 겨울옷 꺼내기"');
+    expect(html).toContain('class="tt-pills"');
+    expect(html).toContain('aria-label="더 보기"');
+  });
+
+  it("오늘 완료한 일은 취소선 항목으로 남기고 완료 체크는 없다", () => {
     expect(html).toMatch(/tt-item is-done[^"]*"[\s\S]*?아침 스트레칭/);
+    expect(html).not.toContain("완료로 기록: 아침 스트레칭");
   });
 
   it("읽을 수 없는 항목을 숨기지 않고 이유와 함께 보여 준다", () => {
@@ -69,11 +69,11 @@ describe("App 렌더링", () => {
 
   it("아래 도구 바에 마감 개수와 분류 선택이 있다", () => {
     expect(html).toContain("마감 1");
-    expect(html).toContain("<option value=\"공부\">");
+    expect(html).toContain('<option value="공부">');
   });
 
   it("항목 제목은 테마의 버튼 스타일을 받지 않도록 button이 아니다", () => {
-    expect(html).not.toMatch(/<button[^>]*class="tt-main"/);
+    expect(html).not.toMatch(/<button[^>]*class="[^"]*tt-main/);
     expect(html).toMatch(/<span role="button" tabindex="0" class="tt-plain tt-main" aria-expanded="false">/);
   });
 
@@ -92,6 +92,11 @@ describe("App 기록 탭", () => {
     expect(html).toContain("10월 13일 (화)");
   });
 
+  it("끝난 항목에는 완료 체크와 행 버튼이 없다", () => {
+    expect(html).not.toContain("완료로 기록:");
+    expect(html).not.toContain("tt-pills");
+  });
+
   it("진행 중 묶음은 보이지 않는다", () => {
     expect(html).not.toContain("겨울옷 꺼내기");
     expect(html).not.toContain("확인이 필요한 항목");
@@ -107,7 +112,7 @@ describe("App 기록 탭", () => {
     expect(html).not.toContain("tt-filter-chip");
   });
 
-  it("선택한 카드를 알리고 전체 보기로 돌아가는 링크가 있다", () => {
+  it("선택한 카드를 알리고 전체 보기로 돌아가는 버튼이 있다", () => {
     expect(html).toContain("기록만 보는 중");
     expect(html).toContain("전체 보기");
     expect(html).toContain('aria-pressed="true"');
@@ -121,10 +126,11 @@ describe("App 상태 화면", () => {
     expect(html).not.toContain("지난 계획");
   });
 
-  it("장부가 하나도 없으면 폴더를 알려 준다", () => {
+  it("장부가 하나도 없으면 폴더를 알려 주고 첫 할 일을 만들 수 있다", () => {
     const html = render({ loaded: true, folder: "할일", ledgers: [] });
     expect(html).toContain("아직 할 일이 없어요");
     expect(html).toContain("할일/ 폴더의 YYYY-MM.md 파일에서 할 일을 읽어요.");
+    expect(html).toContain('aria-label="새 할 일"');
   });
 
   it("폴더 설정이 비어 있으면 vault 루트라고 알려 준다", () => {

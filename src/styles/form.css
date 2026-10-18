@@ -1,0 +1,85 @@
+/* 옵시디언 Modal 안의 입력 폼. 입력칸과 버튼은 옵시디언 기본 모양을 쓴다. */
+
+.tt-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-3);
+}
+.tt-form-title {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  overflow-wrap: anywhere;
+}
+.tt-form .tt-help {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.5;
+}
+.tt-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+.tt-field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: var(--size-4-2);
+}
+.tt-quick {
+  display: flex;
+  gap: var(--size-2-3);
+}
+.tt-quick button {
+  flex: 1;
+}
+
+/* 같은 제목의 진행 중 항목이 있을 때 고르게 하는 묶음 */
+.tt-callout {
+  margin: 0;
+  padding: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+  font-size: var(--font-ui-small);
+  line-height: 1.5;
+}
+.tt-callout legend {
+  padding: 0 var(--size-2-3);
+  font-weight: var(--font-semibold);
+}
+.tt-callout p {
+  margin: 0;
+}
+.tt-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--size-4-2);
+  margin-top: var(--size-4-2);
+}
+
+/* 저장하지 못했을 때의 이유. 경고 글자는 옵시디언 기본 색을 쓴다. */
+.tt-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+  padding: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  color: var(--text-error);
+  font-size: var(--font-ui-small);
+  line-height: 1.5;
+}
+.tt-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--size-4-2);
+  margin-top: var(--size-4-2);
+}
+.is-phone .tt-form-actions button {
+  flex: 1;
+}
