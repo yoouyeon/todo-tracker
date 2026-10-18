@@ -99,6 +99,7 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
 
   const task: TaskRecord = {
     sourcePath: path,
+    line: first,
     sourceRange: { start: header.start, end: lastLine.end },
     sourceText: content.slice(header.start, lastLine.end),
     title,
@@ -137,7 +138,7 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
       continue;
     }
     if (seen.has(key)) {
-      problem("duplicateField", `${key}가 두 번 이상 나옴`);
+      problem("duplicateField", `${key} 속성이 두 번 이상 나옴`);
       continue;
     }
     seen.add(key);
@@ -168,9 +169,9 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
   }
 
   if (!plannedSeen || task.plannedDates.length === 0) {
-    if (!problems.some((p) => p.code === "plannedDates")) problem("plannedDates", `${FIELD.planned}가 없음`);
+    if (!problems.some((p) => p.code === "plannedDates")) problem("plannedDates", `${FIELD.planned} 없음`);
   } else if (task.plannedDates.some((d, i) => i > 0 && d <= (task.plannedDates[i - 1] ?? ""))) {
-    problem("plannedDates", `${FIELD.planned}가 오래된 순서가 아니거나 같은 날짜가 겹침`);
+    problem("plannedDates", `${FIELD.planned}의 날짜가 오래된 순서가 아니거나 겹침`);
   }
 
   return task;

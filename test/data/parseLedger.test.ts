@@ -107,6 +107,14 @@ describe("parseLedger: 원문 위치", () => {
     }
   });
 
+  it("line이 항목 헤더 줄의 번호(0부터)를 가리킨다", () => {
+    const lines = OCT.split("\n");
+    for (const task of ledger.tasks) {
+      expect(lines[task.line]).toBe(task.sourceText.split("\n")[0]);
+    }
+    expect(only(ledger.tasks, "여행 사진 정리").line).toBe(7);
+  });
+
   it("항목 끝의 빈 줄과 줄바꿈을 포함하지 않는다", () => {
     const task = only(ledger.tasks, "아침 스트레칭");
     expect(task.sourceText).toBe(["- [x] 아침 스트레칭", "  - 하기로 한 날: 2026-10-18", "  - 완료한 날: 2026-10-18", "  - 분류: 생활"].join("\n"));
@@ -170,6 +178,7 @@ describe("parseLedger: 잘못된 항목", () => {
   it("하기로 한 날이 없으면 문제로 기록한다", () => {
     const task = only(ledger.tasks, "하기로 한 날이 없는 항목");
     expect(codes(task)).toEqual(["plannedDates"]);
+    expect(task.problems[0]?.message).toBe("하기로 한 날 없음");
   });
 
   it("정상 항목에는 문제가 없다", () => {

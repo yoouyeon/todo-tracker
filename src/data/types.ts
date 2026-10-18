@@ -20,6 +20,8 @@ export interface TaskProblem {
 
 export interface TaskRecord {
   sourcePath: string;
+  /** 헤더 줄의 줄 번호(0부터). 노트를 열 때 이동하는 데 쓴다. */
+  line: number;
   /** 파일 본문 안의 문자 위치. 헤더 줄 시작부터 마지막 속성 줄 끝까지(줄바꿈 제외) */
   sourceRange: { start: number; end: number };
   sourceText: string;
