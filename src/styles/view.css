@@ -1,0 +1,142 @@
+/* 화면 바깥 틀: 여백, 머리말, 요약 카드 */
+
+/* 옵시디언이 view-content에 주는 기본 여백을 없애고 화면 안에서 직접 정한다. */
+.workspace-leaf-content[data-type="todo-tracker-view"] .view-content {
+  padding: 0;
+}
+
+.tt-view {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--size-4-5) var(--size-4-6) var(--size-4-4);
+  font-size: var(--font-ui-medium);
+}
+.is-phone .tt-view {
+  padding: var(--size-4-4) var(--size-4-3) var(--size-4-3);
+}
+
+.tt-icon {
+  display: inline-flex;
+  align-items: center;
+  --icon-size: var(--icon-s);
+}
+.tt-faint {
+  color: var(--text-faint);
+}
+
+.tt-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-2);
+}
+.tt-title {
+  margin: 0;
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-bold);
+  line-height: var(--line-height-tight);
+}
+.tt-sub {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+/* 요약 카드 */
+.tt-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--size-4-2);
+  margin-top: var(--size-4-4);
+}
+.tt-view button.tt-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--size-2-2);
+  height: auto;
+  padding: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l);
+  background: var(--background-primary);
+  box-shadow: none;
+  text-align: left;
+  font-weight: normal;
+  cursor: pointer;
+}
+.tt-view button.tt-stat:hover {
+  background: var(--background-primary-alt);
+  border-color: var(--text-faint);
+}
+.tt-view button.tt-stat.is-active {
+  border-color: var(--interactive-accent);
+  box-shadow: inset 0 0 0 1px var(--interactive-accent);
+}
+.tt-stat-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+.tt-stat-icon {
+  display: inline-flex;
+  color: var(--text-faint);
+}
+.tt-stat-num {
+  font-size: calc(var(--font-ui-large) * 1.4);
+  font-weight: var(--font-bold);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.tt-stat-caption {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+/* 휴대폰: 카드를 작게 줄여 목록이 첫 화면에 보이게 한다. */
+.is-phone .tt-stats {
+  gap: var(--size-4-1);
+  margin-top: var(--size-4-3);
+}
+.is-phone .tt-view button.tt-stat {
+  padding: var(--size-4-2);
+  border-radius: var(--radius-m);
+  gap: 0;
+}
+.is-phone .tt-stat-icon,
+.is-phone .tt-stat-caption {
+  display: none;
+}
+.is-phone .tt-stat-label {
+  font-size: var(--font-ui-smaller);
+}
+.is-phone .tt-stat-num {
+  font-size: var(--font-ui-large);
+}
+
+.tt-scope {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-3);
+  margin-top: var(--size-4-3);
+  padding: 0 var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.tt-blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-12) var(--size-4-4);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  line-height: 1.5;
+  text-align: center;
+}
+.tt-blank-title {
+  color: var(--text-normal);
+  font-size: var(--font-ui-medium);
+  font-weight: var(--font-semibold);
+}

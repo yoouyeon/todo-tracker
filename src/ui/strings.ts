@@ -1,0 +1,98 @@
+/** 화면에 보이는 문구를 모아 둔다. */
+export const T = {
+  viewName: "할 일",
+  ribbonTitle: "할 일 열기",
+  commandOpen: "할 일 열기",
+
+  title: "할 일",
+  loading: "장부를 불러오는 중이에요",
+  emptyTitle: "아직 할 일이 없어요",
+  emptyDesc: (folder: string) => `${folder === "" ? "vault 루트" : `${folder}/`} 폴더의 YYYY-MM.md 파일에서 할 일을 읽어요.`,
+  todaySummary: (total: number, done: number) => `오늘 ${total}개 중 ${done}개 완료`,
+
+  stat: {
+    past: "지난 계획",
+    today: "오늘",
+    upcoming: "예정",
+    records: "기록",
+    pastStale: (n: number) => `오래 밀린 일 ${n}`,
+    pastEmpty: "다시 정할 일",
+    todayDone: (n: number) => `완료 ${n}`,
+    todayEmpty: "오늘 할 일",
+    upcomingCaption: "내일 이후",
+    recordsCaption: (done: number, cancelled: number) => `완료 ${done} · 취소 ${cancelled}`,
+  },
+  scope: (name: string) => `${name}만 보는 중`,
+  showAll: "전체 보기",
+
+  collapse: (name: string) => `${name} 접기`,
+  expand: (name: string) => `${name} 펼치기`,
+  staleHint: (n: number) => `오래 밀린 일 ${n}개 · 처음 계획부터 7일 이상 지난 일을 위에 모았어요`,
+  emptyPast: "지난 계획이 없어요.",
+  emptyToday: "오늘로 계획한 일이 없어요.",
+  emptyUpcoming: "내일 이후로 계획한 일이 없어요.",
+  emptyFiltered: "조건에 맞는 할 일이 없어요.",
+  emptyRecords: "조건에 맞는 기록이 없어요.",
+  noDate: "날짜 없음",
+
+  staleChip: (age: number) => `${age}일째`,
+  staleTitle: (age: number) => `처음 계획부터 ${age}일`,
+  doneOn: (date: string) => `${date} 완료`,
+  cancelledOn: (date: string) => `${date} 취소`,
+  done: "완료",
+  cancelled: "취소",
+  doneMark: "완료",
+  cancelledMark: "취소",
+  openMark: "진행 중",
+
+  field: {
+    planned: "계획 날짜",
+    deadline: "마감일",
+    completedOn: "완료한 날",
+    cancelledOn: "취소한 날",
+    reason: "이유",
+    category: "분류",
+    alias: "다른 이름",
+    memo: "메모",
+    source: "원본",
+  },
+  first: "처음",
+  current: "현재",
+  ageLine: (age: number) => `처음 계획부터 ${age}일`,
+  staleSuffix: "오래 밀린 일",
+  overdueSuffix: "지남",
+  none: "없음",
+  readOnly: "읽기 전용",
+  openNote: "노트에서 열기",
+  noteMissing: "노트를 찾을 수 없어요",
+
+  bar: {
+    search: "검색",
+    searchPlaceholder: "제목·다른 이름 검색",
+    searchClose: "검색 닫기",
+    deadline: (n: number) => `마감 ${n}`,
+    category: "분류",
+    allCategories: "분류 전체",
+  },
+
+  recordFilter: {
+    statusLabel: "상태",
+    all: (n: number) => `전체 ${n}`,
+    done: (n: number) => `완료 ${n}`,
+    cancelled: (n: number) => `취소 ${n}`,
+    allMonths: "모든 달",
+    monthLabel: "월",
+  },
+
+  problems: {
+    title: "확인이 필요한 항목",
+    hint: "형식을 읽을 수 없어서 읽기 전용으로 보여 줘요. 노트에서 고쳐 주세요.",
+    noTitle: "(제목 없음)",
+  },
+
+  settings: {
+    folderName: "장부 폴더",
+    folderDesc: "월별 장부 파일(YYYY-MM.md)이 있는 폴더예요. 비워 두면 vault 루트를 읽어요.",
+    folderPlaceholder: "할일",
+  },
+} as const;

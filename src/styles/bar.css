@@ -1,0 +1,71 @@
+/* 아래에 떠 있는 도구 바와 기록 필터 */
+
+/* 스크롤하는 view-content 안에서 sticky로 붙인다. */
+.tt-bar {
+  position: sticky;
+  bottom: var(--size-4-4);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-2);
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--size-4-8) auto 0;
+  padding: var(--size-2-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s);
+}
+.is-phone .tt-bar {
+  bottom: var(--size-4-3);
+}
+.tt-bar-sep {
+  flex: none;
+  width: 1px;
+  height: 20px;
+  margin: 0 var(--size-2-2);
+  background: var(--background-modifier-border);
+}
+.tt-bar-icon {
+  display: inline-flex;
+  padding: 0 var(--size-4-2);
+  color: var(--text-muted);
+}
+.tt-bar .clickable-icon {
+  gap: var(--size-2-3);
+  padding: var(--size-2-3) var(--size-4-2);
+  font-size: var(--font-ui-small);
+}
+.tt-bar select.dropdown {
+  box-shadow: none;
+  background-color: transparent;
+  color: var(--text-muted);
+}
+.tt-bar input[type="search"] {
+  width: 180px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.tt-bar input[type="search"]:focus {
+  box-shadow: none;
+}
+
+/* 기록 */
+.tt-record-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-3);
+}
+.tt-record-day {
+  margin-top: var(--size-4-4);
+  padding: 0 var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
+}
+.is-phone .tt-record-filters {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

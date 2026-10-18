@@ -1,0 +1,4 @@
+/* 영역별 CSS를 모아 styles.css 하나로 만든다. 색, 글자 크기, 둥글기, 간격, 그림자는 옵시디언 테마 변수만 쓴다. */
+@import "./view.css";
+@import "./list.css";
+@import "./bar.css";
