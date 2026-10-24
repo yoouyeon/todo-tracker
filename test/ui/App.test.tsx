@@ -122,7 +122,7 @@ describe("App 기록 탭", () => {
 describe("App 상태 화면", () => {
   it("읽는 중에는 안내만 보여 준다", () => {
     const html = render({ loaded: false, folder: "할일", monthNotes: [] });
-    expect(html).toContain("장부를 불러오는 중이에요");
+    expect(html).toContain("할 일을 불러오는 중이에요");
     expect(html).not.toContain("지난 계획");
   });
 

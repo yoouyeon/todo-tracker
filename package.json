@@ -1,7 +1,7 @@
 {
   "name": "todo-tracker",
   "version": "0.1.0",
-  "description": "월별 Markdown 장부의 할 일을 옵시디언에서 확인하고 편집하는 플러그인",
+  "description": "월별 Markdown 노트의 할 일을 옵시디언에서 확인하고 편집하는 플러그인",
   "main": "main.js",
   "type": "module",
   "scripts": {

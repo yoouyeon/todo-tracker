@@ -5,7 +5,7 @@ export const T = {
   commandOpen: "할 일 열기",
 
   title: "할 일",
-  loading: "장부를 불러오는 중이에요",
+  loading: "할 일을 불러오는 중이에요",
   emptyTitle: "아직 할 일이 없어요",
   emptyDesc: (folder: string) => `${folder === "" ? "vault 루트" : `${folder}/`} 폴더의 YYYY-MM.md 파일에서 할 일을 읽어요.`,
   todaySummary: (total: number, done: number) => `오늘 ${total}개 중 ${done}개 완료`,
@@ -166,8 +166,8 @@ export const T = {
   },
 
   settings: {
-    folderName: "장부 폴더",
-    folderDesc: "월별 장부 파일(YYYY-MM.md)이 있는 폴더예요. 비워 두면 vault 루트를 읽어요.",
+    folderName: "할 일 폴더",
+    folderDesc: "월별 할 일 노트(YYYY-MM.md)가 있는 폴더예요. 비워 두면 vault 루트를 읽어요.",
     folderPlaceholder: "할일",
   },
 } as const;
