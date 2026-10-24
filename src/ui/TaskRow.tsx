@@ -119,7 +119,8 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
               );
             })}
           </div>
-          {open && (
+          {/* 처음 계획한 날이 오늘이거나 아직 오지 않았으면 지난 일수가 없으므로 보여 주지 않는다. */}
+          {open && item.age > 0 && (
             <div className="tt-help">
               {T.ageLine(item.age)}
               {item.stale && ` · ${T.staleSuffix}`}

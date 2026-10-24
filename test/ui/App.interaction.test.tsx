@@ -111,6 +111,13 @@ describe("상세 정보", () => {
     expect(itemOf("여행 사진 정리").querySelector(".tt-detail")).toBeNull();
   });
 
+  it("처음 계획한 날이 아직 오지 않았으면 지난 일수를 보여 주지 않는다", () => {
+    setup();
+    fireEvent.click(titleButton("부모님 선물 주문"));
+    const detail = itemOf("부모님 선물 주문").querySelector<HTMLElement>(".tt-detail") as HTMLElement;
+    expect(within(detail).queryByText(/처음 계획부터/)).toBeNull();
+  });
+
   it("Enter와 Space로도 펼친다", () => {
     setup();
     const button = titleButton("여행 사진 정리");
