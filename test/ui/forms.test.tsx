@@ -97,11 +97,12 @@ describe("CancelForm", () => {
     return { run, ...handlers };
   };
 
-  it("이유를 입력하기 전에는 저장할 수 없다", () => {
-    setup();
-    expect((button("취소로 기록") as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.change(screen.getByLabelText("이유"), { target: { value: "   " } });
-    expect((button("취소로 기록") as HTMLButtonElement).disabled).toBe(true);
+  it("이유 없이도 저장할 수 있다", async () => {
+    const { run, onSuccess } = setup();
+    expect((button("취소로 기록") as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(button("취소로 기록"));
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+    expect(run).toHaveBeenCalledWith(TODAY, "");
   });
 
   it("취소한 날의 기본값은 오늘이고 날짜와 이유로 요청한다", async () => {

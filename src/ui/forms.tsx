@@ -145,7 +145,7 @@ export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }
       title={task.title}
       submitLabel={T.form.cancelSubmit}
       submitClassName="mod-warning"
-      submitDisabled={date === "" || reason.trim() === ""}
+      submitDisabled={date === ""}
       busy={busy}
       error={error}
       onSubmit={() => void submit(() => run(date, reason))}
@@ -158,9 +158,8 @@ export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }
       </label>
       <label className="tt-field">
         <span>{T.form.reason}</span>
-        <input type="text" value={reason} required autoFocus placeholder={T.form.reasonPlaceholder} onChange={(e) => setReason(e.target.value)} />
+        <input type="text" value={reason} autoFocus placeholder={T.form.reasonPlaceholder} onChange={(e) => setReason(e.target.value)} />
       </label>
-      <p className="tt-help">{T.form.cancelHelp}</p>
     </FormFrame>
   );
 }

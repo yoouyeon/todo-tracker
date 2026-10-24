@@ -133,8 +133,7 @@ export const T = {
 
     cancelledOn: "취소한 날",
     reason: "이유",
-    reasonPlaceholder: "더는 필요하지 않은 이유",
-    cancelHelp: "못 했거나 마감이 지났다는 이유만으로는 취소하지 않아요. 날짜를 다시 정하려면 날짜 추가를 쓰세요.",
+    reasonPlaceholder: "선택 사항",
     cancelSubmit: "취소로 기록",
 
     today: (date: string) => `오늘 ${date}`,

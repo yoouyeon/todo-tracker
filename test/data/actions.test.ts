@@ -119,8 +119,8 @@ describe("TaskActions: 기존 항목 고치기", () => {
     const task = taskOf(writer, "할일/2026-10.md", "보고서 제출");
     const result = await actions.changeDate(task, "2026-10-14");
     expect(result.ok === false && result.message).toContain("이미 10/14");
-    const noReason = await actions.cancel(task, "2026-10-18", "   ");
-    expect(noReason.ok === false && noReason.message).toContain("이유");
+    const badDate = await actions.cancel(task, "2026-13-01", "");
+    expect(badDate.ok).toBe(false);
     expect(writer.writes).toEqual([]);
   });
 

@@ -41,7 +41,6 @@ export const MESSAGES = {
   badDate: "날짜 형식이 올바르지 않아요.",
   badTime: "시각 형식이 올바르지 않아요.",
   noTitle: "제목을 입력해 주세요.",
-  noReason: "이유를 입력해 주세요.",
   deadlineNeedsDate: "마감 시각만 있을 수 없어요. 마감 날짜를 함께 입력해 주세요.",
 } as const;
 
@@ -243,13 +242,12 @@ export function reopenTask(content: string, path: string, target: TaskTarget): E
 export function cancelTask(content: string, path: string, target: TaskTarget, date: string, reason: string): EditResult {
   if (!isValidDate(date)) return fail("invalid", MESSAGES.badDate);
   const why = toOneLine(reason);
-  if (why === "") return fail("invalid", MESSAGES.noReason);
   const found = locateOpen(content, path, target);
   if (!found.ok) return { ok: false, error: found.error };
   const { line } = found.task;
   let next = setCheckbox(content, line, "-");
   next = setProperty(next, line, FIELD.cancelled, date);
-  next = setProperty(next, line, FIELD.reason, why);
+  next = setProperty(next, line, FIELD.reason, why === "" ? null : why);
   return ok(syncOpenFlag(next, path));
 }
 

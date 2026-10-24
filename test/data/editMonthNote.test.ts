@@ -240,10 +240,17 @@ describe("cancelTask", () => {
     expect(find(result, "치과 예약 잡기").cancelReason).toBe("더는 필요 없음");
   });
 
-  it("이유가 비어 있으면 상태를 바꾸지 않는다", () => {
-    const error = failure(cancelTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18", "  \n "));
-    expect(error.code).toBe("invalid");
-    expect(error.message).toContain("이유");
+  it("이유가 비어 있으면 `이유` 줄 없이 취소한다", () => {
+    const result = okContent(cancelTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18", "  \n "));
+    expect(block(result, "치과 예약 잡기")).toEqual([
+      "- [-] 치과 예약 잡기",
+      "  - 하기로 한 날: 2026-10-06",
+      "  - 취소한 날: 2026-10-18",
+      "  - 분류: 생활",
+      "  - 메모: 평일 저녁",
+    ]);
+    const task = find(result, "치과 예약 잡기");
+    expect([task.status, task.cancelReason]).toEqual(["cancelled", null]);
   });
 
   it("다른 항목과 모르는 줄은 그대로다", () => {
