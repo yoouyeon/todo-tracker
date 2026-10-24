@@ -90,7 +90,7 @@ body:not(.is-mobile) .tt-item:hover {
   border-color: var(--interactive-accent);
 }
 
-/* 마우스를 올리거나 항목을 펼치면 부가 정보 자리에 완료·날짜·더 보기 버튼을 보여 준다. */
+/* 마우스를 올리거나 항목을 펼치면 칩 옆에 완료·날짜·더 보기 버튼을 보여 준다. 날짜 버튼이 날짜를 보여 주므로 평문 날짜만 숨긴다. */
 .tt-pills {
   display: none;
   flex: none;
@@ -100,7 +100,7 @@ body:not(.is-mobile) .tt-item:hover {
 body:not(.is-mobile) .tt-item.is-open:is(:hover, .is-selected, :focus-within) .tt-pills {
   display: flex;
 }
-body:not(.is-mobile) .tt-item.is-open:is(:hover, .is-selected, :focus-within) .tt-meta {
+body:not(.is-mobile) .tt-item.is-open:is(:hover, .is-selected, :focus-within) .tt-meta-date {
   display: none;
 }
 /* 마우스를 올릴 수 없는 모바일에서만 상세에 보이는 버튼 */

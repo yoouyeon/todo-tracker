@@ -34,9 +34,9 @@ function Meta({ item }: { item: TaskItem }) {
           {item.deadline.label}
         </span>
       )}
-      {item.bucket === "past" && item.current && <span>{formatMonthDay(item.current)}</span>}
+      {item.bucket === "past" && item.current && <span className="tt-meta-date">{formatMonthDay(item.current)}</span>}
       {item.bucket === "upcoming" && item.current && (
-        <span>
+        <span className="tt-meta-date">
           {formatMonthDay(item.current)} ({weekdayOf(item.current)})
         </span>
       )}
