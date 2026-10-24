@@ -69,6 +69,14 @@ describe("TaskActions: 기존 항목 고치기", () => {
     expect(writer.writes).toEqual(["할일/2026-10.md"]);
   });
 
+  it("완료한 항목을 되돌리면 원래 내용으로 돌아간다", async () => {
+    const { writer, actions } = setup();
+    const path = "할일/2026-10.md";
+    await actions.complete(taskOf(writer, path, "치과 예약 잡기"), "2026-10-18");
+    expect(await actions.reopen(taskOf(writer, path, "치과 예약 잡기"))).toEqual({ ok: true });
+    expect(writer.files.get(path)).toBe(OCT);
+  });
+
   it("화면에 보이던 시점 이후 노트가 바뀌었으면 쓰지 않고 이유를 알린다", async () => {
     const { writer, actions } = setup();
     const stale = taskOf(writer, "할일/2026-10.md", "치과 예약 잡기");

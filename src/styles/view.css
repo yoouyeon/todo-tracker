@@ -169,3 +169,8 @@
   font-size: var(--font-ui-medium);
   font-weight: var(--font-semibold);
 }
+
+/* 알림 안의 버튼(되돌리기, 노트에서 열기). 위 문구와 붙지 않게 띄운다. */
+.tt-notice-action {
+  margin-top: var(--size-4-2);
+}

@@ -106,7 +106,7 @@ export const T = {
     today: "오늘 하기",
     tomorrow: "내일 하기",
     pickDate: "날짜 선택…",
-    complete: "완료로 기록…",
+    complete: "다른 날 완료로 기록…",
     edit: "편집…",
     openNote: "노트에서 열기",
     cancel: "취소…",
@@ -158,6 +158,9 @@ export const T = {
 
   notice: {
     completed: (title: string) => `완료로 기록했어요: ${title}`,
+    undo: "되돌리기",
+    reopened: (title: string) => `완료를 되돌렸어요: ${title}`,
+    undoMissing: "되돌릴 항목을 찾지 못했어요. 노트에서 직접 고쳐 주세요.",
     cancelled: (title: string) => `취소로 기록했어요: ${title}`,
     dateChanged: (title: string, date: string) => `${date}에 하기로 했어요: ${title}`,
     updated: (title: string) => `저장했어요: ${title}`,

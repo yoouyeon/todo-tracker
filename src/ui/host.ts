@@ -8,7 +8,10 @@ export interface AppHost {
   openNote(task: TaskRecord): void;
   /** 새 할 일 입력창. `defaultDate`는 처음 하기로 한 날의 기본값 */
   newTask(defaultDate: string): void;
+  /** 오늘 날짜로 바로 완료한다. 알림에서 되돌릴 수 있다. */
   complete(task: TaskRecord, today: string): void;
+  /** 완료한 날을 고르는 입력창 */
+  completeOn(task: TaskRecord, today: string): void;
   cancel(task: TaskRecord, today: string): void;
   /** 날짜 추가 입력창 */
   pickDate(task: TaskRecord, today: string): void;

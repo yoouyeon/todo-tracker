@@ -37,7 +37,7 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
   const notifyFailure = (task: TaskRecord, message: string) => {
     const content = createFragment((fragment) => {
       fragment.createDiv({ text: message });
-      const button = fragment.createEl("button", { text: T.openNote });
+      const button = fragment.createEl("button", { text: T.openNote, cls: "tt-notice-action" });
       button.addEventListener("click", () => open(task));
     });
     new Notice(content, 10_000);
@@ -55,6 +55,33 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     const result = await run();
     if (result.ok) new Notice(success);
     return result;
+  };
+
+  /** 완료한 항목을 지금 저장소에서 다시 찾는다. 완료로 바뀐 뒤의 원문이 있어야 되돌릴 대상을 확신할 수 있다. */
+  const findCompleted = (task: TaskRecord): TaskRecord | undefined =>
+    store
+      .getSnapshot()
+      .monthNotes.find((note) => note.path === task.sourcePath)
+      ?.tasks.find((t) => t.line === task.line && t.title === task.title && t.status === "done");
+
+  /** 완료 알림. 잘못 눌렀을 때 바로 되돌릴 수 있게 버튼을 붙인다. */
+  const notifyCompleted = (task: TaskRecord) => {
+    const notice = new Notice(
+      createFragment((fragment) => {
+        fragment.createDiv({ text: T.notice.completed(task.title) });
+        const button = fragment.createEl("button", { text: T.notice.undo, cls: "tt-notice-action" });
+        button.addEventListener("click", () => {
+          notice.hide();
+          const completed = findCompleted(task);
+          if (!completed) {
+            notifyFailure(task, T.notice.undoMissing);
+            return;
+          }
+          void quick(completed, () => actions.reopen(completed), T.notice.reopened(task.title));
+        });
+      }),
+      10_000,
+    );
   };
 
   const showModal = (title: string, render: (close: () => void) => ReactNode) => new ReactModal(app, title, render).open();
@@ -77,6 +104,10 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     },
 
     complete(task, today) {
+      void actions.complete(task, today).then((result) => (result.ok ? notifyCompleted(task) : notifyFailure(task, result.message)));
+    },
+
+    completeOn(task, today) {
       showModal(T.form.completeTitle, (close) => (
         <CompleteForm
           task={task}
@@ -153,7 +184,7 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
       if (kind === "task") {
         if (isOpen) {
           menu.addSeparator();
-          menu.addItem((item) => item.setTitle(T.menu.complete).setIcon("check").onClick(() => host.complete(task, today)));
+          menu.addItem((item) => item.setTitle(T.menu.complete).setIcon("check").onClick(() => host.completeOn(task, today)));
           menu.addItem((item) => item.setTitle(T.menu.edit).setIcon("pencil").onClick(() => host.edit(task)));
         }
         menu.addItem((item) => item.setTitle(T.menu.openNote).setIcon("file-text").onClick(() => open(task)));

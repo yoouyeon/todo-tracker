@@ -5,6 +5,7 @@ import {
   completeTask,
   insertTask,
   plannedDateError,
+  reopenTask,
   syncOpenFlag,
   updateTask,
   type EditResult,
@@ -170,6 +171,34 @@ describe("대상 항목 확인", () => {
     const error = failure(completeTask(shifted, PATH, second, "2026-10-18"));
     expect(error.code).toBe("conflict");
     expect(error.message).toContain("어느 쪽인지");
+  });
+});
+
+describe("reopenTask", () => {
+  it("완료를 되돌리면 완료하기 전 내용과 같아진다", () => {
+    const done = okContent(completeTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
+    const reopened = okContent(reopenTask(done, PATH, target(done, "치과 예약 잡기")));
+    expect(reopened).toBe(BASE);
+  });
+
+  it("마지막 진행 중 항목을 되돌리면 frontmatter 미완료도 true로 돌아간다", () => {
+    const single = ["---", "월: 2026-10", "미완료: true", "---", "", "- [ ] 하나뿐", "  - 하기로 한 날: 2026-10-18", ""].join("\n");
+    const done = okContent(completeTask(single, PATH, target(single, "하나뿐"), "2026-10-18"));
+    expect(parseMonthNote(PATH, done).frontmatter?.hasOpen).toBe(false);
+    expect(okContent(reopenTask(done, PATH, target(done, "하나뿐")))).toBe(single);
+  });
+
+  it("완료한 항목이 아니면 되돌리지 않는다", () => {
+    const error = failure(reopenTask(BASE, PATH, target(BASE, "치과 예약 잡기")));
+    expect(error.code).toBe("readonly");
+    expect(error.message).toContain("완료한 항목만");
+  });
+
+  it("완료한 뒤 노트에서 항목이 바뀌었으면 되돌리지 않는다", () => {
+    const done = okContent(completeTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
+    const staleTarget = target(done, "치과 예약 잡기");
+    const edited = done.replace("  - 메모: 평일 저녁", "  - 메모: 주말");
+    expect(failure(reopenTask(edited, PATH, staleTarget)).code).toBe("conflict");
   });
 });
 

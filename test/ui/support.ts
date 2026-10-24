@@ -33,6 +33,7 @@ export function createHostStub() {
     openNote: vi.fn(),
     newTask: vi.fn(),
     complete: vi.fn(),
+    completeOn: vi.fn(),
     cancel: vi.fn(),
     pickDate: vi.fn(),
     edit: vi.fn(),

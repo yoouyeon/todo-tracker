@@ -5,6 +5,7 @@ import {
   changePlannedDate,
   completeTask,
   insertTask,
+  reopenTask,
   updateTask,
   type EditResult,
   type NewTaskInput,
@@ -40,6 +41,11 @@ export class TaskActions {
 
   complete(task: TaskRecord, date: string): Promise<ActionResult> {
     return this.editExisting(task, (content) => completeTask(content, task.sourcePath, task, date));
+  }
+
+  /** 완료를 되돌린다. `task`는 완료된 상태의 항목이다. */
+  reopen(task: TaskRecord): Promise<ActionResult> {
+    return this.editExisting(task, (content) => reopenTask(content, task.sourcePath, task));
   }
 
   cancel(task: TaskRecord, date: string, reason: string): Promise<ActionResult> {
