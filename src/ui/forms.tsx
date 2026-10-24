@@ -113,6 +113,29 @@ export function CompleteForm({ task, today, run, onSuccess, onCancel, onOpenNote
   );
 }
 
+export function CompletedDateForm({ task, run, onSuccess, onCancel, onOpenNote }: TaskFormProps & { run: (date: string) => Promise<ActionResult> }) {
+  const [date, setDate] = useState(task.completedOn ?? "");
+  const { error, busy, submit } = useSubmit(onSuccess);
+  return (
+    <FormFrame
+      title={task.title}
+      submitLabel={T.form.completedDateSubmit}
+      busy={busy}
+      error={error}
+      submitDisabled={date === "" || date === task.completedOn}
+      onSubmit={() => void submit(() => run(date))}
+      onCancel={onCancel}
+      onOpenNote={onOpenNote}
+    >
+      <label className="tt-field">
+        <span>{T.form.completedOn}</span>
+        <input type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
+      </label>
+      {task.completedOn && <p className="tt-help">{T.form.completedDateHelp(formatMonthDay(task.completedOn))}</p>}
+    </FormFrame>
+  );
+}
+
 export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }: TaskFormProps & { today: string; run: (date: string, reason: string) => Promise<ActionResult> }) {
   const [date, setDate] = useState(today);
   const [reason, setReason] = useState("");

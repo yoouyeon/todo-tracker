@@ -37,7 +37,7 @@ export const MESSAGES = {
   ambiguous: "같은 내용의 항목이 여러 개라 어느 쪽인지 알 수 없어서 저장하지 않았어요. 노트에서 직접 고쳐 주세요.",
   unreadable: "형식을 읽을 수 없는 항목이라 고칠 수 없어요. 노트에서 직접 고쳐 주세요.",
   notOpen: "진행 중인 항목만 고칠 수 있어요.",
-  notDone: "완료한 항목만 되돌릴 수 있어요.",
+  notDone: "완료한 항목에서만 할 수 있어요.",
   badDate: "날짜 형식이 올바르지 않아요.",
   badTime: "시각 형식이 올바르지 않아요.",
   noTitle: "제목을 입력해 주세요.",
@@ -214,6 +214,18 @@ export function completeTask(content: string, path: string, target: TaskTarget, 
   let next = setCheckbox(content, line, "x");
   next = setProperty(next, line, FIELD.completed, date);
   return ok(syncOpenFlag(next, path));
+}
+
+/** 완료한 항목의 `완료한 날`을 바꾼다. */
+export function changeCompletedDate(content: string, path: string, target: TaskTarget, date: string): EditResult {
+  if (!isValidDate(date)) return fail("invalid", MESSAGES.badDate);
+  const found = locate(content, path, target);
+  if (!found.ok) return { ok: false, error: found.error };
+  const { task } = found;
+  if (task.problems.length > 0) return fail("readonly", MESSAGES.unreadable);
+  if (task.status !== "done") return fail("readonly", MESSAGES.notDone);
+  if (task.completedOn === date) return fail("invalid", `이미 ${formatMonthDay(date)}에 완료했어요.`);
+  return ok(setProperty(content, task.line, FIELD.completed, date));
 }
 
 /** 완료를 되돌린다. 체크박스를 [ ]로 바꾸고 `완료한 날` 줄을 지운다. */

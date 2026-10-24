@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ActionResult } from "../../src/data/actions";
 import { findOpenDuplicates } from "../../src/logic/selectors";
-import { CancelForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../../src/ui/forms";
+import { CancelForm, CompletedDateForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../../src/ui/forms";
 import { TODAY, TOMORROW, loaded, taskOf } from "./support";
 
 afterEach(cleanup);
@@ -12,6 +12,21 @@ const OK: ActionResult = { ok: true };
 const okRun = <A extends unknown[]>() => vi.fn(async (..._args: A): Promise<ActionResult> => OK);
 const failRun = <A extends unknown[]>(message: string) => vi.fn(async (..._args: A): Promise<ActionResult> => ({ ok: false, message }));
 const button = (name: string) => screen.getByRole("button", { name });
+
+describe("CompletedDateForm", () => {
+  it("지금 완료한 날로 시작하고, 날짜를 바꿔야 저장할 수 있다", async () => {
+    const run = okRun<[string]>();
+    const onSuccess = vi.fn();
+    render(<CompletedDateForm task={taskOf("아침 스트레칭")} run={run} onSuccess={onSuccess} onCancel={vi.fn()} onOpenNote={vi.fn()} />);
+    const input = screen.getByLabelText("완료한 날") as HTMLInputElement;
+    expect(input.value).toBe("2026-10-18");
+    expect((button("바꾸기") as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(input, { target: { value: "2026-10-17" } });
+    fireEvent.click(button("바꾸기"));
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
+    expect(run).toHaveBeenCalledWith("2026-10-17");
+  });
+});
 
 describe("CompleteForm", () => {
   const setup = (run = okRun<[string]>()) => {

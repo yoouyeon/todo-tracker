@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cancelTask,
+  changeCompletedDate,
   changePlannedDate,
   completeTask,
   insertTask,
@@ -174,6 +175,23 @@ describe("대상 항목 확인", () => {
   });
 });
 
+describe("changeCompletedDate", () => {
+  it("완료한 날 줄만 바꾸고 다른 내용은 그대로 둔다", () => {
+    const result = okContent(changeCompletedDate(BASE, PATH, target(BASE, "끝난 일"), "2026-10-12"));
+    expect(block(result, "끝난 일")).toEqual(["- [x] 끝난 일", "  - 하기로 한 날: 2026-10-10", "  - 완료한 날: 2026-10-12", "  - 분류: 개인"]);
+    expect(rest(result, "끝난 일")).toBe(rest(BASE, "끝난 일"));
+  });
+
+  it("지금과 같은 날짜나 틀린 형식으로는 바꾸지 않는다", () => {
+    expect(failure(changeCompletedDate(BASE, PATH, target(BASE, "끝난 일"), "2026-10-10")).message).toContain("이미 10/10");
+    expect(failure(changeCompletedDate(BASE, PATH, target(BASE, "끝난 일"), "어제")).code).toBe("invalid");
+  });
+
+  it("완료한 항목이 아니면 바꾸지 않는다", () => {
+    expect(failure(changeCompletedDate(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-12")).code).toBe("readonly");
+  });
+});
+
 describe("reopenTask", () => {
   it("완료를 되돌리면 완료하기 전 내용과 같아진다", () => {
     const done = okContent(completeTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
@@ -191,7 +209,7 @@ describe("reopenTask", () => {
   it("완료한 항목이 아니면 되돌리지 않는다", () => {
     const error = failure(reopenTask(BASE, PATH, target(BASE, "치과 예약 잡기")));
     expect(error.code).toBe("readonly");
-    expect(error.message).toContain("완료한 항목만");
+    expect(error.message).toContain("완료한 항목에서만");
   });
 
   it("완료한 뒤 노트에서 항목이 바뀌었으면 되돌리지 않는다", () => {

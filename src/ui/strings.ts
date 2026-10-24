@@ -97,6 +97,8 @@ export const T = {
 
   action: {
     complete: "완료",
+    changeCompleted: "완료한 날 바꾸기",
+    reopen: "완료 되돌리기",
     changeDate: "날짜 바꾸기",
     edit: "편집",
     cancel: "취소…",
@@ -107,6 +109,8 @@ export const T = {
     tomorrow: "내일 하기",
     pickDate: "날짜 선택…",
     complete: "다른 날 완료로 기록…",
+    changeCompleted: "완료한 날 바꾸기…",
+    reopen: "완료 되돌리기",
     edit: "편집…",
     openNote: "노트에서 열기",
     cancel: "취소…",
@@ -123,6 +127,9 @@ export const T = {
     completedOn: "완료한 날",
     completeHelp: (file: string) => `${file}의 체크박스를 [x]로 바꾸고 완료한 날을 추가해요.`,
     completeSubmit: "완료로 기록",
+    completedDateTitle: "완료한 날 바꾸기",
+    completedDateHelp: (current: string) => `지금은 ${current}에 완료한 것으로 적혀 있어요. 완료한 날만 바꿔요.`,
+    completedDateSubmit: "바꾸기",
 
     cancelledOn: "취소한 날",
     reason: "이유",
@@ -158,6 +165,7 @@ export const T = {
 
   notice: {
     completed: (title: string) => `완료로 기록했어요: ${title}`,
+    completedDateChanged: (title: string, date: string) => `${date}에 완료한 것으로 바꿨어요: ${title}`,
     undo: "되돌리기",
     reopened: (title: string) => `완료를 되돌렸어요: ${title}`,
     undoMissing: "되돌릴 항목을 찾지 못했어요. 노트에서 직접 고쳐 주세요.",

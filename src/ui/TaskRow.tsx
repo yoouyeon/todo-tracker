@@ -197,6 +197,18 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
             </button>
           </>
         )}
+        {task.status === "done" && (
+          <>
+            <button type="button" onClick={() => host.changeCompletedOn(task)}>
+              <Icon name="calendar-check" />
+              {T.action.changeCompleted}
+            </button>
+            <button type="button" onClick={() => host.reopen(task)}>
+              <Icon name="undo-2" />
+              {T.action.reopen}
+            </button>
+          </>
+        )}
         <button type="button" onClick={() => host.openNote(task)}>
           <Icon name="file-text" />
           {T.openNote}

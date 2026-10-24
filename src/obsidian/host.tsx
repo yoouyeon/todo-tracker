@@ -7,7 +7,7 @@ import type { TaskRecord } from "../data/types";
 import { addDays } from "../logic/dates";
 import { formatMonthDay, monthNoteFileName } from "../logic/format";
 import { findOpenDuplicates } from "../logic/selectors";
-import { CancelForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../ui/forms";
+import { CancelForm, CompletedDateForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../ui/forms";
 import type { AppHost } from "../ui/host";
 import { T } from "../ui/strings";
 import { ReactModal } from "./ReactModal";
@@ -120,6 +120,22 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
       ));
     },
 
+    changeCompletedOn(task) {
+      showModal(T.form.completedDateTitle, (close) => (
+        <CompletedDateForm
+          task={task}
+          run={(date) => notifyOnSuccess(() => actions.changeCompletedDate(task, date), T.notice.completedDateChanged(task.title, formatMonthDay(date)))}
+          onSuccess={close}
+          onCancel={close}
+          onOpenNote={() => open(task)}
+        />
+      ));
+    },
+
+    reopen(task) {
+      void quick(task, () => actions.reopen(task), T.notice.reopened(task.title));
+    },
+
     cancel(task, today) {
       showModal(T.form.cancelTitle, (close) => (
         <CancelForm
@@ -186,6 +202,11 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
           menu.addSeparator();
           menu.addItem((item) => item.setTitle(T.menu.complete).setIcon("check").onClick(() => host.completeOn(task, today)));
           menu.addItem((item) => item.setTitle(T.menu.edit).setIcon("pencil").onClick(() => host.edit(task)));
+        }
+        if (task.status === "done") {
+          menu.addItem((item) => item.setTitle(T.menu.changeCompleted).setIcon("calendar-check").onClick(() => host.changeCompletedOn(task)));
+          menu.addItem((item) => item.setTitle(T.menu.reopen).setIcon("undo-2").onClick(() => host.reopen(task)));
+          menu.addSeparator();
         }
         menu.addItem((item) => item.setTitle(T.menu.openNote).setIcon("file-text").onClick(() => open(task)));
         if (isOpen) {

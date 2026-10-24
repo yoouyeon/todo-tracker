@@ -34,6 +34,8 @@ export function createHostStub() {
     newTask: vi.fn(),
     complete: vi.fn(),
     completeOn: vi.fn(),
+    changeCompletedOn: vi.fn(),
+    reopen: vi.fn(),
     cancel: vi.fn(),
     pickDate: vi.fn(),
     edit: vi.fn(),

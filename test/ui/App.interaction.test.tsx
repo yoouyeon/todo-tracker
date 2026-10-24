@@ -165,13 +165,25 @@ describe("상세 정보", () => {
     expect(host.pickDate).toHaveBeenCalledWith(task, TODAY);
   });
 
-  it("끝난 항목의 상세에는 노트 열기만 있다", () => {
+  it("완료한 항목의 상세에서는 완료한 날을 바꾸거나 되돌릴 수 있다", () => {
     const { host } = setup();
     fireEvent.click(titleButton("아침 스트레칭"));
     const detail = within(itemOf("아침 스트레칭").querySelector<HTMLElement>(".tt-detail") as HTMLElement);
-    expect(detail.getAllByRole("button").map((b) => b.textContent)).toEqual(["노트에서 열기"]);
+    expect(detail.getAllByRole("button").map((b) => b.textContent)).toEqual(["완료한 날 바꾸기", "완료 되돌리기", "노트에서 열기"]);
+    const task = taskOf("아침 스트레칭");
+    fireEvent.click(detail.getByRole("button", { name: "완료한 날 바꾸기" }));
+    expect(host.changeCompletedOn).toHaveBeenCalledWith(task);
+    fireEvent.click(detail.getByRole("button", { name: "완료 되돌리기" }));
+    expect(host.reopen).toHaveBeenCalledWith(task);
     fireEvent.click(detail.getByRole("button", { name: "노트에서 열기" }));
     expect(host.openNote).toHaveBeenCalledTimes(1);
+  });
+
+  it("취소한 항목의 상세에는 노트 열기만 있다", () => {
+    setup("records");
+    fireEvent.click(titleButton("헬스장 1일권 구매"));
+    const detail = within(itemOf("헬스장 1일권 구매").querySelector<HTMLElement>(".tt-detail") as HTMLElement);
+    expect(detail.getAllByRole("button").map((b) => b.textContent)).toEqual(["노트에서 열기"]);
   });
 });
 
