@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { completeTask } from "../../src/data/editMonthNote";
 import { parseMonthNote } from "../../src/data/parseMonthNote";
 import { App } from "../../src/ui/App";
 import type { Tab } from "../../src/ui/StatCards";
@@ -189,6 +192,36 @@ describe("상세 정보", () => {
     expect(host.changeCancellation).toHaveBeenCalledWith(task);
     fireEvent.click(detail.getByRole("button", { name: "취소 되돌리기" }));
     expect(host.reopen).toHaveBeenCalledWith(task);
+  });
+});
+
+describe("완료한 항목을 제자리에 남겨 두기", () => {
+  const raw = (name: string) => readFileSync(resolve(process.cwd(), "test/fixtures", name), "utf8");
+  const sectionOf = (title: string) => screen.getByRole("heading", { level: 3, name: title }).closest<HTMLElement>(".tt-section") as HTMLElement;
+  const listOf = (title: string) => sectionOf(title).querySelector<HTMLElement>(".tt-list") as HTMLElement;
+  const titlesIn = (title: string) => [...sectionOf(title).querySelectorAll(".tt-item")].map((el) => `${el.querySelector(".tt-item-title")?.textContent}${el.classList.contains("is-done") ? " ✓" : ""}`);
+
+  it("연달아 완료해도 목록에서 마우스가 나갈 때까지 순서가 그대로다", () => {
+    const { source } = setup();
+    const contents = new Map(["2026-09.md", "2026-10.md"].map((name) => [`할일/${name}`, raw(name)]));
+    const before = titlesIn("지난 계획");
+    const [first, second] = before;
+
+    for (const title of [first, second] as string[]) {
+      fireEvent.click(screen.getByRole("button", { name: `완료로 기록: ${title}` }));
+      const task = taskOf(title);
+      const result = completeTask(contents.get(task.sourcePath) ?? "", task.sourcePath, task, TODAY);
+      if (!result.ok) throw new Error(result.error.message);
+      contents.set(task.sourcePath, result.content);
+      act(() => source.set({ ...loaded, monthNotes: [...contents].map(([path, content]) => parseMonthNote(path, content)) }));
+    }
+
+    expect(titlesIn("지난 계획")).toEqual([`${first} ✓`, `${second} ✓`, ...before.slice(2)]);
+    expect(titlesIn("오늘").filter((t) => t === `${first} ✓`)).toEqual([]);
+
+    fireEvent.mouseLeave(listOf("지난 계획"));
+    expect(titlesIn("지난 계획")).toEqual(before.slice(2));
+    expect(titlesIn("오늘")).toContain(`${first} ✓`);
   });
 });
 

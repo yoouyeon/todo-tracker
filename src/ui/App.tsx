@@ -1,6 +1,6 @@
-import { useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { MonthNoteSource } from "../data/taskStore";
-import { addDays, formatLocalDate, formatLocalTime } from "../logic/dates";
+import { addDays, formatLocalDate, formatLocalTime, type Bucket } from "../logic/dates";
 import { formatLongDate } from "../logic/format";
 import { buildBoard, type RecordStatusFilter, type TaskItem } from "../logic/selectors";
 import { FilterBar } from "./FilterBar";
@@ -23,6 +23,18 @@ export interface AppProps {
 
 const defaultNow = () => new Date();
 
+/** 마우스가 없는 기기에서 완료한 항목을 제자리에 남겨 두는 시간 */
+const HOLD_MS_WITHOUT_HOVER = 3000;
+
+/** 체크해서 완료한 항목이 원래 있던 자리. 같은 목록에서 마우스가 나갈 때까지 그 자리에 완료 모습으로 남긴다. */
+interface Held {
+  key: string;
+  bucket: Bucket;
+  index: number;
+}
+
+const canHover = () => typeof window.matchMedia !== "function" || !window.matchMedia("(hover: none)").matches;
+
 export function App({ store, host, getNow = defaultNow, initialTab = "all" }: AppProps) {
   const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const now = useNow(getNow);
@@ -38,11 +50,19 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
   const [searchOpen, setSearchOpen] = useState(false);
   const [recordStatus, setRecordStatus] = useState<RecordStatusFilter>("all");
   const [recordMonth, setRecordMonth] = useState("");
+  const [held, setHeld] = useState<Held[]>([]);
 
   const board = useMemo(
     () => buildBoard(snapshot.monthNotes, { today, time }, { deadlineOnly, category, query, recordStatus, recordMonth }),
     [snapshot.monthNotes, today, time, deadlineOnly, category, query, recordStatus, recordMonth],
   );
+
+  // 마우스가 없으면 목록을 벗어나는 순간을 알 수 없으니 잠시 뒤 옮긴다.
+  useEffect(() => {
+    if (held.length === 0 || canHover()) return;
+    const timer = window.setTimeout(() => setHeld([]), HOLD_MS_WITHOUT_HOVER);
+    return () => window.clearTimeout(timer);
+  }, [held]);
 
   if (!snapshot.loaded) {
     return (
@@ -58,10 +78,45 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
   const toggleCollapsed = (id: string) => setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleExpanded = (key: string) => setExpanded((prev) => (prev === key ? null : key));
 
+  // 완료하면 항목이 다른 자리로 옮겨지면서 아래 항목이 올라온다. 연달아 누를 때 엉뚱한 항목을 완료하지 않도록
+  // 같은 목록에서 마우스가 나갈 때까지 완료한 항목을 원래 자리에 남겨 둔다.
+  const rowHost: AppHost = {
+    ...host,
+    complete(task, date) {
+      for (const bucket of ["past", "today", "upcoming"] as const) {
+        // 이미 남겨 둔 항목까지 포함해 화면에 보이는 자리를 기억해야 연달아 완료해도 순서가 유지된다.
+        const shown = withHeld(bucket, board[bucket]);
+        const index = shown.findIndex((i) => i.task === task);
+        const item = shown[index];
+        if (item) setHeld((prev) => [...prev.filter((h) => h.key !== item.key), { key: item.key, bucket, index }]);
+      }
+      host.complete(task, date);
+    },
+  };
+  const heldDone = new Map(board.doneToday.filter((i) => held.some((h) => h.key === i.key)).map((i) => [i.key, i]));
+  /** 목록에 남겨 둔 완료 항목을 원래 자리에 끼워 넣는다. */
+  const withHeld = (bucket: Bucket, items: TaskItem[]) => {
+    const result = [...items];
+    for (const h of held.filter((h) => h.bucket === bucket).sort((a, b) => a.index - b.index)) {
+      const item = heldDone.get(h.key);
+      if (item) result.splice(Math.min(h.index, result.length), 0, item);
+    }
+    return result;
+  };
+  const release = (bucket: Bucket) => setHeld((prev) => (prev.some((h) => h.bucket === bucket) ? prev.filter((h) => h.bucket !== bucket) : prev));
+
   const rows = (items: TaskItem[]) =>
-    items.map((item) => <TaskRow key={item.key} item={item} today={today} expanded={expanded === item.key} onToggle={() => toggleExpanded(item.key)} host={host} />);
-  const list = (items: TaskItem[], empty: string) =>
-    items.length > 0 ? <div className="tt-list">{rows(items)}</div> : <div className="tt-empty">{filtered ? T.emptyFiltered : empty}</div>;
+    items.map((item) => <TaskRow key={item.key} item={item} today={today} expanded={expanded === item.key} onToggle={() => toggleExpanded(item.key)} host={rowHost} />);
+  const list = (bucket: Bucket, items: TaskItem[], empty: string) => {
+    const shown = withHeld(bucket, items);
+    return shown.length > 0 ? (
+      <div className="tt-list" onMouseLeave={() => release(bucket)}>
+        {rows(shown)}
+      </div>
+    ) : (
+      <div className="tt-empty">{filtered ? T.emptyFiltered : empty}</div>
+    );
+  };
   const addButton = (name: string, date: string) => (
     <button type="button" className="clickable-icon" aria-label={T.addTo(name)} onClick={() => host.newTask(date)}>
       <Icon name="plus" />
@@ -134,7 +189,7 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
             )
           }
         >
-          {list(board.past, T.emptyPast)}
+          {list("past", board.past, T.emptyPast)}
         </Section>
       )}
 
@@ -148,9 +203,9 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
           tools={addButton(T.stat.today, today)}
         >
           {board.today.length + board.doneToday.length > 0 ? (
-            <div className="tt-list">
-              {rows(board.today)}
-              {rows(board.doneToday)}
+            <div className="tt-list" onMouseLeave={() => release("today")}>
+              {rows(withHeld("today", board.today))}
+              {rows(board.doneToday.filter((i) => !heldDone.has(i.key)))}
             </div>
           ) : (
             <div className="tt-empty">{filtered ? T.emptyFiltered : T.emptyToday}</div>
@@ -167,7 +222,7 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
           onToggle={() => toggleCollapsed("upcoming")}
           tools={addButton(T.stat.upcoming, addDays(today, 1))}
         >
-          {list(board.upcoming, T.emptyUpcoming)}
+          {list("upcoming", board.upcoming, T.emptyUpcoming)}
         </Section>
       )}
 
