@@ -31,11 +31,11 @@ export interface TaskItem {
   task: TaskRecord;
   /** 처음 계획한 날. 문제가 있어 읽을 수 없는 항목이면 null */
   first: string | null;
-  /** 현재 계획 날짜. 이력 중 가장 최근 날짜 */
+  /** 현재 계획 날짜(`하기로 한 날`) */
   current: string | null;
   /** 처음 계획한 날부터 오늘까지 지난 일수 */
   age: number;
-  /** 진행 중이고 오래 밀렸는지 */
+  /** 진행 중이고 오래 밀렸는지. 아직 계획한 날이 오지 않은 예정 항목은 밀린 게 아니므로 빼고, 지난 계획과 오늘에만 붙인다. */
   stale: boolean;
   /** 진행 중 항목의 묶음 */
   bucket: Bucket | null;
@@ -48,7 +48,7 @@ export interface Counts {
   past: number;
   today: number;
   upcoming: number;
-  /** 오래 밀린 일 */
+  /** 지난 계획 안의 오래 밀린 일 */
   stale: number;
   /** 마감이 지났거나 임박한 진행 중 항목 */
   deadlineAlert: number;
@@ -105,14 +105,15 @@ export function buildItems(monthNotes: ParsedMonthNote[], clock: Clock): TaskIte
         const state = deadlineState(task.deadline, clock.today, clock.time);
         deadline = { state, label: deadlineLabel(task.deadline, state, clock.today) };
       }
+      const bucket = open && current ? bucketOf(current, clock.today) : null;
       items.push({
         key: `${base}|${n}`,
         task,
         first,
         current,
         age: first ? ageInDays(first, clock.today) : 0,
-        stale: open && first !== null && isStale(first, clock.today),
-        bucket: open && current ? bucketOf(current, clock.today) : null,
+        stale: bucket !== null && bucket !== "upcoming" && first !== null && isStale(first, clock.today),
+        bucket,
         deadline,
         order: items.length,
       });
@@ -146,7 +147,7 @@ export function buildBoard(monthNotes: ParsedMonthNote[], clock: Clock, filters:
     past: open.filter((i) => i.bucket === "past").length,
     today: open.filter((i) => i.bucket === "today").length,
     upcoming: open.filter((i) => i.bucket === "upcoming").length,
-    stale: open.filter((i) => i.stale).length,
+    stale: open.filter((i) => i.stale && i.bucket === "past").length,
     deadlineAlert: open.filter(isAlert).length,
     records: closed.length,
     done: closed.filter((i) => i.task.status === "done").length,

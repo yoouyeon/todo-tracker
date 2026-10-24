@@ -53,6 +53,23 @@ describe("buildBoard: 오래 밀린 일과 정렬", () => {
     ]);
   });
 
+  it("오래 밀린 일은 지난 계획과 오늘에만 붙이고, 아직 계획한 날이 오지 않은 예정 항목에는 붙이지 않는다", () => {
+    const october = parseMonthNote(
+      "할일/2026-10.md",
+      "---\n월: 2026-10\n미완료: true\n---\n\n" +
+        "- [ ] 지난 계획으로 미룬 일\n  - 처음 하기로 한 날: 2026-10-01\n  - 하기로 한 날: 2026-10-10\n" +
+        "- [ ] 오늘로 다시 잡은 일\n  - 처음 하기로 한 날: 2026-10-01\n  - 하기로 한 날: 2026-10-18\n" +
+        "- [ ] 다음 달로 미룬 일\n  - 처음 하기로 한 날: 2026-10-01\n  - 하기로 한 날: 2026-11-05\n",
+    );
+    const result = buildBoard([october], clock, NO_FILTERS);
+    const staleOf = (items: Board["past"]) => items.map((i) => [i.task.title, i.age, i.stale]);
+    expect(staleOf(result.past)).toEqual([["지난 계획으로 미룬 일", 17, true]]);
+    expect(staleOf(result.today)).toEqual([["오늘로 다시 잡은 일", 17, true]]);
+    expect(staleOf(result.upcoming)).toEqual([["다음 달로 미룬 일", 17, false]]);
+    // 지난 계획 카드의 숫자는 지난 계획 안의 것만 센다.
+    expect(result.counts.stale).toBe(1);
+  });
+
   it("현재 계획 날짜가 아니라 처음 계획한 날로 센다", () => {
     // 겨울옷은 현재 계획 날짜가 10/5지만 처음 날짜 9/28 기준으로 20일째다.
     const winter = b.past[0];
