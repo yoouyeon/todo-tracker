@@ -22,6 +22,10 @@
   align-items: center;
   --icon-size: var(--icon-s);
 }
+/* 아이콘과 글자를 함께 쓰는 버튼에서 둘이 붙지 않게 한다. 아이콘만 있는 버튼에는 영향이 없다. */
+.tt-view button:has(> .tt-icon) {
+  gap: var(--size-2-2);
+}
 .tt-faint {
   color: var(--text-faint);
 }
