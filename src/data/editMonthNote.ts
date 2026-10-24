@@ -38,6 +38,8 @@ export const MESSAGES = {
   unreadable: "형식을 읽을 수 없는 항목이라 고칠 수 없어요. 노트에서 직접 고쳐 주세요.",
   notOpen: "진행 중인 항목만 고칠 수 있어요.",
   notDone: "완료한 항목에서만 할 수 있어요.",
+  notCancelled: "취소한 항목에서만 할 수 있어요.",
+  notClosed: "완료하거나 취소한 항목에서만 할 수 있어요.",
   badDate: "날짜 형식이 올바르지 않아요.",
   badTime: "시각 형식이 올바르지 않아요.",
   noTitle: "제목을 입력해 주세요.",
@@ -227,16 +229,39 @@ export function changeCompletedDate(content: string, path: string, target: TaskT
   return ok(setProperty(content, task.line, FIELD.completed, date));
 }
 
-/** 완료를 되돌린다. 체크박스를 [ ]로 바꾸고 `완료한 날` 줄을 지운다. */
+/**
+ * 완료나 취소를 되돌린다. 체크박스를 [ ]로 바꾸고 완료했으면 `완료한 날`, 취소했으면 `취소한 날`과 `이유` 줄을 지운다.
+ * `하기로 한 날`은 건드리지 않는다.
+ */
 export function reopenTask(content: string, path: string, target: TaskTarget): EditResult {
   const found = locate(content, path, target);
   if (!found.ok) return { ok: false, error: found.error };
   const { task } = found;
   if (task.problems.length > 0) return fail("readonly", MESSAGES.unreadable);
-  if (task.status !== "done") return fail("readonly", MESSAGES.notDone);
+  if (task.status === "open") return fail("readonly", MESSAGES.notClosed);
   let next = setCheckbox(content, task.line, " ");
-  next = setProperty(next, task.line, FIELD.completed, null);
+  if (task.status === "done") {
+    next = setProperty(next, task.line, FIELD.completed, null);
+  } else {
+    next = setProperty(next, task.line, FIELD.cancelled, null);
+    next = setProperty(next, task.line, FIELD.reason, null);
+  }
   return ok(syncOpenFlag(next, path));
+}
+
+/** 취소한 항목의 `취소한 날`과 `이유`를 바꾼다. 이유를 비우면 `이유` 줄을 지운다. */
+export function changeCancellation(content: string, path: string, target: TaskTarget, date: string, reason: string): EditResult {
+  if (!isValidDate(date)) return fail("invalid", MESSAGES.badDate);
+  const found = locate(content, path, target);
+  if (!found.ok) return { ok: false, error: found.error };
+  const { task } = found;
+  if (task.problems.length > 0) return fail("readonly", MESSAGES.unreadable);
+  if (task.status !== "cancelled") return fail("readonly", MESSAGES.notCancelled);
+  const why = toOneLine(reason);
+  if (task.cancelledOn === date && (task.cancelReason ?? "") === why) return fail("invalid", "바뀐 내용이 없어요.");
+  let next = setProperty(content, task.line, FIELD.cancelled, date);
+  next = setProperty(next, task.line, FIELD.reason, why === "" ? null : why);
+  return ok(next);
 }
 
 export function cancelTask(content: string, path: string, target: TaskTarget, date: string, reason: string): EditResult {

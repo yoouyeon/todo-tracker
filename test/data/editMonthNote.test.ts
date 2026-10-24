@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cancelTask,
+  changeCancellation,
   changeCompletedDate,
   changePlannedDate,
   completeTask,
@@ -192,6 +193,39 @@ describe("changeCompletedDate", () => {
   });
 });
 
+describe("changeCancellation", () => {
+  const CANCELLED = okContent(cancelTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18", "병원이 문을 닫음"));
+
+  it("취소한 날과 이유를 바꾸고 다른 내용은 그대로 둔다", () => {
+    const result = okContent(changeCancellation(CANCELLED, PATH, target(CANCELLED, "치과 예약 잡기"), "2026-10-17", "다른 병원으로 옮김"));
+    expect(block(result, "치과 예약 잡기")).toEqual([
+      "- [-] 치과 예약 잡기",
+      "  - 하기로 한 날: 2026-10-06",
+      "  - 취소한 날: 2026-10-17",
+      "  - 이유: 다른 병원으로 옮김",
+      "  - 분류: 생활",
+      "  - 메모: 평일 저녁",
+    ]);
+    expect(rest(result, "치과 예약 잡기")).toBe(rest(CANCELLED, "치과 예약 잡기"));
+  });
+
+  it("이유를 비우면 이유 줄을 지운다", () => {
+    const result = okContent(changeCancellation(CANCELLED, PATH, target(CANCELLED, "치과 예약 잡기"), "2026-10-18", "  "));
+    expect(block(result, "치과 예약 잡기")).not.toContain("  - 이유: 병원이 문을 닫음");
+    expect(find(result, "치과 예약 잡기").cancelReason).toBeNull();
+  });
+
+  it("바뀐 내용이 없거나 날짜 형식이 틀리면 바꾸지 않는다", () => {
+    const t = target(CANCELLED, "치과 예약 잡기");
+    expect(failure(changeCancellation(CANCELLED, PATH, t, "2026-10-18", " 병원이 문을 닫음 ")).message).toContain("바뀐 내용이 없어요");
+    expect(failure(changeCancellation(CANCELLED, PATH, t, "어제", "")).code).toBe("invalid");
+  });
+
+  it("취소한 항목이 아니면 바꾸지 않는다", () => {
+    expect(failure(changeCancellation(BASE, PATH, target(BASE, "끝난 일"), "2026-10-12", "")).code).toBe("readonly");
+  });
+});
+
 describe("reopenTask", () => {
   it("완료를 되돌리면 완료하기 전 내용과 같아진다", () => {
     const done = okContent(completeTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
@@ -206,10 +240,15 @@ describe("reopenTask", () => {
     expect(okContent(reopenTask(done, PATH, target(done, "하나뿐")))).toBe(single);
   });
 
-  it("완료한 항목이 아니면 되돌리지 않는다", () => {
+  it("취소를 되돌리면 취소한 날과 이유 줄이 지워져 취소하기 전 내용과 같아진다", () => {
+    const cancelled = okContent(cancelTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18", "병원이 문을 닫음"));
+    expect(okContent(reopenTask(cancelled, PATH, target(cancelled, "치과 예약 잡기")))).toBe(BASE);
+  });
+
+  it("진행 중인 항목은 되돌리지 않는다", () => {
     const error = failure(reopenTask(BASE, PATH, target(BASE, "치과 예약 잡기")));
     expect(error.code).toBe("readonly");
-    expect(error.message).toContain("완료한 항목에서만");
+    expect(error.message).toContain("완료하거나 취소한 항목에서만");
   });
 
   it("완료한 뒤 노트에서 항목이 바뀌었으면 되돌리지 않는다", () => {

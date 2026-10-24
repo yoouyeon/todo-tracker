@@ -2,6 +2,7 @@ import { isValidDate, monthOf } from "../logic/dates";
 import {
   MESSAGES,
   cancelTask,
+  changeCancellation,
   changeCompletedDate,
   changePlannedDate,
   completeTask,
@@ -49,7 +50,12 @@ export class TaskActions {
     return this.editExisting(task, (content) => changeCompletedDate(content, task.sourcePath, task, date));
   }
 
-  /** 완료를 되돌린다. `task`는 완료된 상태의 항목이다. */
+  /** 취소한 항목의 취소한 날과 이유를 바꾼다. */
+  changeCancellation(task: TaskRecord, date: string, reason: string): Promise<ActionResult> {
+    return this.editExisting(task, (content) => changeCancellation(content, task.sourcePath, task, date, reason));
+  }
+
+  /** 완료나 취소를 되돌린다. `task`는 완료했거나 취소한 상태의 항목이다. */
   reopen(task: TaskRecord): Promise<ActionResult> {
     return this.editExisting(task, (content) => reopenTask(content, task.sourcePath, task));
   }

@@ -179,11 +179,16 @@ describe("상세 정보", () => {
     expect(host.openNote).toHaveBeenCalledTimes(1);
   });
 
-  it("취소한 항목의 상세에는 노트 열기만 있다", () => {
-    setup("records");
+  it("취소한 항목의 상세에서는 취소 내용을 바꾸거나 되돌릴 수 있다", () => {
+    const { host } = setup("records");
     fireEvent.click(titleButton("헬스장 1일권 구매"));
     const detail = within(itemOf("헬스장 1일권 구매").querySelector<HTMLElement>(".tt-detail") as HTMLElement);
-    expect(detail.getAllByRole("button").map((b) => b.textContent)).toEqual(["노트에서 열기"]);
+    expect(detail.getAllByRole("button").map((b) => b.textContent)).toEqual(["취소 내용 바꾸기", "취소 되돌리기", "노트에서 열기"]);
+    const task = taskOf("헬스장 1일권 구매");
+    fireEvent.click(detail.getByRole("button", { name: "취소 내용 바꾸기" }));
+    expect(host.changeCancellation).toHaveBeenCalledWith(task);
+    fireEvent.click(detail.getByRole("button", { name: "취소 되돌리기" }));
+    expect(host.reopen).toHaveBeenCalledWith(task);
   });
 });
 

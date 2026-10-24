@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ActionResult } from "../../src/data/actions";
 import { findOpenDuplicates } from "../../src/logic/selectors";
-import { CancelForm, CompletedDateForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../../src/ui/forms";
+import { CancelForm, CancellationForm, CompletedDateForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../../src/ui/forms";
 import { TODAY, TOMORROW, loaded, taskOf } from "./support";
 
 afterEach(cleanup);
@@ -25,6 +25,22 @@ describe("CompletedDateForm", () => {
     fireEvent.click(button("바꾸기"));
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
     expect(run).toHaveBeenCalledWith("2026-10-17");
+  });
+});
+
+describe("CancellationForm", () => {
+  it("지금 취소한 날과 이유로 시작하고, 하나라도 바꿔야 저장할 수 있다", async () => {
+    const run = okRun<[string, string]>();
+    const onSuccess = vi.fn();
+    render(<CancellationForm task={taskOf("헬스장 1일권 구매")} run={run} onSuccess={onSuccess} onCancel={vi.fn()} onOpenNote={vi.fn()} />);
+    expect((screen.getByLabelText("취소한 날") as HTMLInputElement).value).toBe("2026-10-12");
+    const reason = screen.getByLabelText("이유") as HTMLInputElement;
+    expect(reason.value).toBe("집 근처에 새 헬스장이 생겨서 필요 없어짐");
+    expect((button("바꾸기") as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(reason, { target: { value: "" } });
+    fireEvent.click(button("바꾸기"));
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
+    expect(run).toHaveBeenCalledWith("2026-10-12", "");
   });
 });
 

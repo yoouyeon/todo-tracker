@@ -164,6 +164,34 @@ export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }
   );
 }
 
+export function CancellationForm({ task, run, onSuccess, onCancel, onOpenNote }: TaskFormProps & { run: (date: string, reason: string) => Promise<ActionResult> }) {
+  const [date, setDate] = useState(task.cancelledOn ?? "");
+  const [reason, setReason] = useState(task.cancelReason ?? "");
+  const { error, busy, submit } = useSubmit(onSuccess);
+  const unchanged = date === task.cancelledOn && reason.trim() === (task.cancelReason ?? "");
+  return (
+    <FormFrame
+      title={task.title}
+      submitLabel={T.form.cancellationSubmit}
+      submitDisabled={date === "" || unchanged}
+      busy={busy}
+      error={error}
+      onSubmit={() => void submit(() => run(date, reason))}
+      onCancel={onCancel}
+      onOpenNote={onOpenNote}
+    >
+      <label className="tt-field">
+        <span>{T.form.cancelledOn}</span>
+        <input type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
+      </label>
+      <label className="tt-field">
+        <span>{T.form.reason}</span>
+        <input type="text" value={reason} placeholder={T.form.reasonPlaceholder} onChange={(e) => setReason(e.target.value)} />
+      </label>
+    </FormFrame>
+  );
+}
+
 export function DateForm({ task, today, run, onSuccess, onCancel, onOpenNote }: TaskFormProps & { today: string; run: (date: string) => Promise<ActionResult> }) {
   const tomorrow = addDays(today, 1);
   const suggested = addDays(today, 2);

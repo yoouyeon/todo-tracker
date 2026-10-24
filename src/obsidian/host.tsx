@@ -7,7 +7,7 @@ import type { TaskRecord } from "../data/types";
 import { addDays } from "../logic/dates";
 import { formatMonthDay, monthNoteFileName } from "../logic/format";
 import { findOpenDuplicates } from "../logic/selectors";
-import { CancelForm, CompletedDateForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../ui/forms";
+import { CancelForm, CancellationForm, CompletedDateForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../ui/forms";
 import type { AppHost } from "../ui/host";
 import { T } from "../ui/strings";
 import { ReactModal } from "./ReactModal";
@@ -132,8 +132,21 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
       ));
     },
 
+    changeCancellation(task) {
+      showModal(T.form.cancellationTitle, (close) => (
+        <CancellationForm
+          task={task}
+          run={(date, reason) => notifyOnSuccess(() => actions.changeCancellation(task, date, reason), T.notice.cancellationChanged(task.title))}
+          onSuccess={close}
+          onCancel={close}
+          onOpenNote={() => open(task)}
+        />
+      ));
+    },
+
     reopen(task) {
-      void quick(task, () => actions.reopen(task), T.notice.reopened(task.title));
+      const message = task.status === "cancelled" ? T.notice.uncancelled(task.title) : T.notice.reopened(task.title);
+      void quick(task, () => actions.reopen(task), message);
     },
 
     cancel(task, today) {
@@ -206,6 +219,11 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
         if (task.status === "done") {
           menu.addItem((item) => item.setTitle(T.menu.changeCompleted).setIcon("calendar-check").onClick(() => host.changeCompletedOn(task)));
           menu.addItem((item) => item.setTitle(T.menu.reopen).setIcon("undo-2").onClick(() => host.reopen(task)));
+          menu.addSeparator();
+        }
+        if (task.status === "cancelled") {
+          menu.addItem((item) => item.setTitle(T.menu.changeCancellation).setIcon("pencil").onClick(() => host.changeCancellation(task)));
+          menu.addItem((item) => item.setTitle(T.menu.uncancel).setIcon("undo-2").onClick(() => host.reopen(task)));
           menu.addSeparator();
         }
         menu.addItem((item) => item.setTitle(T.menu.openNote).setIcon("file-text").onClick(() => open(task)));

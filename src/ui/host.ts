@@ -14,7 +14,9 @@ export interface AppHost {
   completeOn(task: TaskRecord, today: string): void;
   /** 완료한 항목의 완료한 날을 바꾸는 입력창 */
   changeCompletedOn(task: TaskRecord): void;
-  /** 완료한 항목을 진행 중으로 되돌린다. */
+  /** 취소한 항목의 취소한 날과 이유를 바꾸는 입력창 */
+  changeCancellation(task: TaskRecord): void;
+  /** 완료했거나 취소한 항목을 진행 중으로 되돌린다. */
   reopen(task: TaskRecord): void;
   cancel(task: TaskRecord, today: string): void;
   /** 날짜 추가 입력창 */

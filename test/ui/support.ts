@@ -35,6 +35,7 @@ export function createHostStub() {
     complete: vi.fn(),
     completeOn: vi.fn(),
     changeCompletedOn: vi.fn(),
+    changeCancellation: vi.fn(),
     reopen: vi.fn(),
     cancel: vi.fn(),
     pickDate: vi.fn(),

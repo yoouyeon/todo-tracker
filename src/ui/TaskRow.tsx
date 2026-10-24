@@ -209,6 +209,18 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
             </button>
           </>
         )}
+        {task.status === "cancelled" && (
+          <>
+            <button type="button" onClick={() => host.changeCancellation(task)}>
+              <Icon name="pencil" />
+              {T.action.changeCancellation}
+            </button>
+            <button type="button" onClick={() => host.reopen(task)}>
+              <Icon name="undo-2" />
+              {T.action.uncancel}
+            </button>
+          </>
+        )}
         <button type="button" onClick={() => host.openNote(task)}>
           <Icon name="file-text" />
           {T.openNote}
