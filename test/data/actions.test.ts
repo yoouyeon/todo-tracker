@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { TaskActions, type LedgerWriter } from "../../src/data/actions";
-import { parseLedger } from "../../src/data/parseLedger";
+import { TaskActions, type MonthNoteWriter } from "../../src/data/actions";
+import { parseMonthNote } from "../../src/data/parseMonthNote";
 import type { TaskRecord } from "../../src/data/types";
 
 const OCT = [
@@ -22,7 +22,7 @@ const OCT = [
 ].join("\n");
 
 /** 파일 내용을 메모리에 들고 있는 가짜 writer. 실제로 내용이 바뀐 쓰기만 `writes`에 남긴다. */
-class FakeWriter implements LedgerWriter {
+class FakeWriter implements MonthNoteWriter {
   files = new Map<string, string>();
   writes: string[] = [];
   onCreate: ((path: string) => void) | null = null;
@@ -53,7 +53,7 @@ const setup = (files: Record<string, string> = { "할일/2026-10.md": OCT }, fol
   return { writer, actions: new TaskActions(writer, () => folder) };
 };
 const taskOf = (writer: FakeWriter, path: string, title: string): TaskRecord => {
-  const task = parseLedger(path, writer.files.get(path) ?? "").tasks.find((t) => t.title === title);
+  const task = parseMonthNote(path, writer.files.get(path) ?? "").tasks.find((t) => t.title === title);
   if (!task) throw new Error(`"${title}" 항목이 없음`);
   return task;
 };
@@ -138,16 +138,16 @@ describe("TaskActions.addTask", () => {
   it("첫 계획 날짜의 월 파일이 있으면 순서에 맞춰 넣는다", async () => {
     const { writer, actions } = setup();
     expect(await actions.addTask({ title: "새 일", date: "2026-10-10", category: "생활" })).toEqual({ ok: true });
-    const titles = parseLedger("할일/2026-10.md", writer.files.get("할일/2026-10.md") ?? "").tasks.map((t) => t.title);
+    const titles = parseMonthNote("할일/2026-10.md", writer.files.get("할일/2026-10.md") ?? "").tasks.map((t) => t.title);
     expect(titles).toEqual(["치과 예약 잡기", "새 일", "보고서 제출"]);
   });
 
-  it("월 파일이 없으면 월과 미완료가 있는 기본 장부를 만든다", async () => {
+  it("월 파일이 없으면 월과 미완료가 있는 새 월 노트를 만든다", async () => {
     const { writer, actions } = setup();
     expect(await actions.addTask({ title: "연말 정리", date: "2026-12-30" })).toEqual({ ok: true });
     const created = writer.files.get("할일/2026-12.md") ?? "";
     expect(created.startsWith("---\n월: 2026-12\n미완료: true\n---")).toBe(true);
-    expect(parseLedger("할일/2026-12.md", created).tasks.map((t) => t.title)).toEqual(["연말 정리"]);
+    expect(parseMonthNote("할일/2026-12.md", created).tasks.map((t) => t.title)).toEqual(["연말 정리"]);
     expect(writer.files.get("할일/2026-10.md")).toBe(OCT);
   });
 
@@ -175,7 +175,7 @@ describe("TaskActions.addTask", () => {
       writer.files.set(path, OCT);
     };
     expect(await actions.addTask({ title: "새 일", date: "2026-10-10" })).toEqual({ ok: true });
-    const titles = parseLedger("할일/2026-10.md", writer.files.get("할일/2026-10.md") ?? "").tasks.map((t) => t.title);
+    const titles = parseMonthNote("할일/2026-10.md", writer.files.get("할일/2026-10.md") ?? "").tasks.map((t) => t.title);
     expect(titles).toEqual(["치과 예약 잡기", "새 일", "보고서 제출"]);
   });
 

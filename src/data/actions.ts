@@ -9,12 +9,12 @@ import {
   type EditResult,
   type NewTaskInput,
   type TaskPatch,
-} from "./editLedger";
+} from "./editMonthNote";
 import { normalizeFolder } from "./paths";
 import type { TaskRecord } from "./types";
 
 /** 파일에 쓰는 일을 맡는 얇은 경계. 실제로는 `Vault.process()`와 `Vault.create()`를 쓴다. */
-export interface LedgerWriter {
+export interface MonthNoteWriter {
   /** 파일이 있으면 최신 내용을 넘겨 돌려받은 내용으로 바꾸고 true. 파일이 없으면 false */
   process(path: string, fn: (content: string) => string): Promise<boolean>;
   /** 파일을 새로 만든다. 이미 있으면 던진다. */
@@ -34,7 +34,7 @@ const describe = (error: unknown) => (error instanceof Error ? error.message : S
  */
 export class TaskActions {
   constructor(
-    private readonly writer: LedgerWriter,
+    private readonly writer: MonthNoteWriter,
     private readonly getFolder: () => string,
   ) {}
 
@@ -54,7 +54,7 @@ export class TaskActions {
     return this.editExisting(task, (content) => updateTask(content, task.sourcePath, task, patch));
   }
 
-  /** 첫 계획 날짜의 월 파일에 새 항목을 넣는다. 파일이 없으면 기본 장부를 만든다. */
+  /** 첫 계획 날짜의 월 파일에 새 항목을 넣는다. 파일이 없으면 새 월 노트를 만든다. */
   async addTask(input: NewTaskInput): Promise<ActionResult> {
     if (!isValidDate(input.date)) return fail(MESSAGES.badDate);
     const folder = normalizeFolder(this.getFolder());

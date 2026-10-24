@@ -1,4 +1,4 @@
-/** 월 장부 파일의 줄 단위 문법. 파서(읽기)와 편집(쓰기)이 같은 규칙을 쓰도록 모아 둔다. */
+/** 월 노트의 줄 단위 문법. 파서(읽기)와 편집(쓰기)이 같은 규칙을 쓰도록 모아 둔다. */
 
 export interface Line {
   /** 줄 끝의 \r을 뺀 내용 */
@@ -25,7 +25,7 @@ export const FIELD = {
 
 export type FieldKey = (typeof FIELD)[keyof typeof FIELD];
 
-/** 새 속성 줄을 넣을 때 따르는 순서. 기존 장부의 순서와 같다. */
+/** 새 속성 줄을 넣을 때 따르는 순서. 기존 노트의 순서와 같다. */
 export const FIELD_ORDER: readonly FieldKey[] = [
   FIELD.planned,
   FIELD.deadline,

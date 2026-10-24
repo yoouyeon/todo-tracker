@@ -1,11 +1,11 @@
 import { Menu, Notice, type App } from "obsidian";
 import type { ReactNode } from "react";
 import type { ActionResult, TaskActions } from "../data/actions";
-import { plannedDateError } from "../data/editLedger";
-import type { LedgerSource } from "../data/taskStore";
+import { plannedDateError } from "../data/editMonthNote";
+import type { MonthNoteSource } from "../data/taskStore";
 import type { TaskRecord } from "../data/types";
 import { addDays } from "../logic/dates";
-import { formatMonthDay, ledgerFileName } from "../logic/format";
+import { formatMonthDay, monthNoteFileName } from "../logic/format";
 import { findOpenDuplicates } from "../logic/selectors";
 import { CancelForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../ui/forms";
 import type { AppHost } from "../ui/host";
@@ -14,7 +14,7 @@ import { ReactModal } from "./ReactModal";
 
 interface Deps {
   app: App;
-  store: LedgerSource;
+  store: MonthNoteSource;
   actions: TaskActions;
   openNote: (task: TaskRecord) => Promise<void>;
 }
@@ -26,7 +26,7 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
   const categories = () => {
     const all = store
       .getSnapshot()
-      .ledgers.flatMap((ledger) => ledger.tasks)
+      .monthNotes.flatMap((monthNote) => monthNote.tasks)
       .filter((task) => task.problems.length === 0)
       .map((task) => task.category)
       .filter((category): category is string => category !== null);
@@ -67,8 +67,8 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
         <NewTaskForm
           defaultDate={defaultDate}
           categories={categories()}
-          findDuplicates={(title) => findOpenDuplicates(store.getSnapshot().ledgers, title)}
-          onCreate={(input) => notifyOnSuccess(() => actions.addTask(input), T.notice.created(ledgerFileName(input.date)))}
+          findDuplicates={(title) => findOpenDuplicates(store.getSnapshot().monthNotes, title)}
+          onCreate={(input) => notifyOnSuccess(() => actions.addTask(input), T.notice.created(monthNoteFileName(input.date)))}
           onAddDate={(task, date) => notifyOnSuccess(() => actions.addDate(task, date), T.notice.dateAdded(task.title, formatMonthDay(date)))}
           onSuccess={close}
           onCancel={close}

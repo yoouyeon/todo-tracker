@@ -164,7 +164,7 @@ describe("DateForm", () => {
 
 describe("EditForm", () => {
   const task = taskOf("여행 사진 정리");
-  const setup = (run = okRun<[import("../../src/data/editLedger").TaskPatch]>()) => {
+  const setup = (run = okRun<[import("../../src/data/editMonthNote").TaskPatch]>()) => {
     const handlers = { onSuccess: vi.fn(), onCancel: vi.fn(), onOpenNote: vi.fn() };
     render(<EditForm task={task} categories={["개인", "공부", "생활"]} run={run} {...handlers} />);
     return { run, ...handlers };
@@ -221,8 +221,8 @@ describe("EditForm", () => {
 });
 
 describe("NewTaskForm", () => {
-  const setup = (overrides: { onCreate?: ReturnType<typeof okRun<[import("../../src/data/editLedger").NewTaskInput]>> } = {}) => {
-    const onCreate = overrides.onCreate ?? okRun<[import("../../src/data/editLedger").NewTaskInput]>();
+  const setup = (overrides: { onCreate?: ReturnType<typeof okRun<[import("../../src/data/editMonthNote").NewTaskInput]>> } = {}) => {
+    const onCreate = overrides.onCreate ?? okRun<[import("../../src/data/editMonthNote").NewTaskInput]>();
     const onAddDate = okRun<[import("../../src/data/types").TaskRecord, string]>();
     const onSuccess = vi.fn();
     const onCancel = vi.fn();
@@ -230,7 +230,7 @@ describe("NewTaskForm", () => {
       <NewTaskForm
         defaultDate={TODAY}
         categories={["개인", "공부"]}
-        findDuplicates={(title) => findOpenDuplicates(loaded.ledgers, title)}
+        findDuplicates={(title) => findOpenDuplicates(loaded.monthNotes, title)}
         onCreate={onCreate}
         onAddDate={onAddDate}
         onSuccess={onSuccess}
@@ -349,7 +349,7 @@ describe("NewTaskForm", () => {
   });
 
   it("저장에 실패하면 이유를 보여 주고 입력을 남긴 채 닫지 않는다", async () => {
-    const onCreate = failRun<[import("../../src/data/editLedger").NewTaskInput]>("노트를 만들지 못했어요: 폴더를 만들 수 없음");
+    const onCreate = failRun<[import("../../src/data/editMonthNote").NewTaskInput]>("노트를 만들지 못했어요: 폴더를 만들 수 없음");
     const { onSuccess } = setup({ onCreate });
     type("제목", "새 일");
     submit();

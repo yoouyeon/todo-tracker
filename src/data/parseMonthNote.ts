@@ -1,18 +1,18 @@
 import { isValidDate, isValidTime } from "../logic/dates";
-import { FIELD, INDENTED_RE, KNOWN_FIELDS, PROPERTY_RE, TASK_HEADER_RE, indentOf, splitLines, type Line } from "./ledgerSyntax";
-import type { Deadline, LedgerFrontmatter, ParsedLedger, ProblemCode, TaskProblem, TaskRecord, TaskStatus } from "./types";
+import { FIELD, INDENTED_RE, KNOWN_FIELDS, PROPERTY_RE, TASK_HEADER_RE, indentOf, splitLines, type Line } from "./monthNoteSyntax";
+import type { Deadline, MonthNoteFrontmatter, ParsedMonthNote, ProblemCode, TaskProblem, TaskRecord, TaskStatus } from "./types";
 
 const DEADLINE_RE = /^(\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}))?$/;
-const LEDGER_FILE_RE = /^(\d{4}-(?:0[1-9]|1[0-2]))\.md$/;
+const MONTH_NOTE_FILE_RE = /^(\d{4}-(?:0[1-9]|1[0-2]))\.md$/;
 
-/** `할일/2026-10.md` 같은 경로에서 `2026-10`을 꺼낸다. 월 장부 파일 이름이 아니면 null */
-export function ledgerMonthOfPath(path: string): string | null {
+/** `할일/2026-10.md` 같은 경로에서 `2026-10`을 꺼낸다. 월 노트 파일 이름이 아니면 null */
+export function monthOfNotePath(path: string): string | null {
   const name = path.slice(path.lastIndexOf("/") + 1);
-  return LEDGER_FILE_RE.exec(name)?.[1] ?? null;
+  return MONTH_NOTE_FILE_RE.exec(name)?.[1] ?? null;
 }
 
 /** 파일 첫 줄이 `---`이면 닫는 `---`까지를 frontmatter로 본다. 본문 시작 줄 번호도 돌려준다. */
-function parseFrontmatter(lines: Line[], issues: string[]): { frontmatter: LedgerFrontmatter | null; bodyStart: number } {
+function parseFrontmatter(lines: Line[], issues: string[]): { frontmatter: MonthNoteFrontmatter | null; bodyStart: number } {
   if (lines[0]?.text !== "---") return { frontmatter: null, bodyStart: 0 };
   const close = lines.findIndex((line, i) => i > 0 && line.text === "---");
   if (close === -1) {
@@ -144,7 +144,7 @@ export function hasOpenTask(tasks: TaskRecord[]): boolean {
 }
 
 /** 월 파일 본문에서 frontmatter와 최상위 체크리스트 항목을 읽는다. 잘못된 항목도 버리지 않는다. */
-export function parseLedger(path: string, content: string): ParsedLedger {
+export function parseMonthNote(path: string, content: string): ParsedMonthNote {
   const issues: string[] = [];
   const lines = splitLines(content);
   const { frontmatter, bodyStart } = parseFrontmatter(lines, issues);
@@ -163,7 +163,7 @@ export function parseLedger(path: string, content: string): ParsedLedger {
     i = last + 1;
   }
 
-  const fileMonth = ledgerMonthOfPath(path);
+  const fileMonth = monthOfNotePath(path);
   if (frontmatter) {
     if (frontmatter.month === null) issues.push("frontmatter에 월이 없음");
     else if (fileMonth !== null && frontmatter.month !== fileMonth) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deadlineLabel, formatLongDate, formatMonthDay, ledgerFileName, weekdayOf } from "../../src/logic/format";
+import { deadlineLabel, formatLongDate, formatMonthDay, monthNoteFileName, weekdayOf } from "../../src/logic/format";
 
 describe("날짜 표기", () => {
   it("요일을 구한다", () => {
@@ -18,7 +18,7 @@ describe("날짜 표기", () => {
   });
 
   it("날짜가 들어갈 월 파일 이름을 만든다", () => {
-    expect(ledgerFileName("2026-11-02")).toBe("2026-11.md");
+    expect(monthNoteFileName("2026-11-02")).toBe("2026-11.md");
   });
 });
 

@@ -1,5 +1,5 @@
 import { useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import type { LedgerSource } from "../data/taskStore";
+import type { MonthNoteSource } from "../data/taskStore";
 import { addDays, formatLocalDate, formatLocalTime } from "../logic/dates";
 import { formatLongDate } from "../logic/format";
 import { buildBoard, type RecordStatusFilter, type TaskItem } from "../logic/selectors";
@@ -13,7 +13,7 @@ import { ProblemRow, TaskRow } from "./TaskRow";
 import { useNow } from "./useNow";
 
 export interface AppProps {
-  store: LedgerSource;
+  store: MonthNoteSource;
   host: AppHost;
   /** 테스트에서 시각을 고정할 때 바꾼다. */
   getNow?: () => Date;
@@ -40,8 +40,8 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
   const [recordMonth, setRecordMonth] = useState("");
 
   const board = useMemo(
-    () => buildBoard(snapshot.ledgers, { today, time }, { deadlineOnly, category, query, recordStatus, recordMonth }),
-    [snapshot.ledgers, today, time, deadlineOnly, category, query, recordStatus, recordMonth],
+    () => buildBoard(snapshot.monthNotes, { today, time }, { deadlineOnly, category, query, recordStatus, recordMonth }),
+    [snapshot.monthNotes, today, time, deadlineOnly, category, query, recordStatus, recordMonth],
   );
 
   if (!snapshot.loaded) {
@@ -86,7 +86,7 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
     </div>
   );
 
-  if (snapshot.ledgers.length === 0) {
+  if (snapshot.monthNotes.length === 0) {
     return (
       <div className="tt-view">
         {header}

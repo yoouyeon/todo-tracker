@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { parseLedger } from "../../src/data/parseLedger";
+import { parseMonthNote } from "../../src/data/parseMonthNote";
 import { App } from "../../src/ui/App";
 import type { Tab } from "../../src/ui/StatCards";
 import { NOW, TODAY, TOMORROW, createHostStub, createSource, loaded, taskOf } from "./support";
@@ -287,11 +287,11 @@ describe("파일이 바뀌면 화면이 따라 바뀐다", () => {
     expect(screen.queryByText("새로 생긴 일")).toBeNull();
     expect(stat("오늘").textContent).toContain("2");
 
-    const next = parseLedger(
+    const next = parseMonthNote(
       "할일/2026-10.md",
       "---\n월: 2026-10\n미완료: true\n---\n\n- [ ] 새로 생긴 일\n  - 하기로 한 날: 2026-10-18\n",
     );
-    act(() => source.set({ loaded: true, folder: "할일", ledgers: [next] }));
+    act(() => source.set({ loaded: true, folder: "할일", monthNotes: [next] }));
 
     expect(screen.getByText("새로 생긴 일")).toBeTruthy();
     expect(stat("오늘").textContent).toContain("1");
@@ -299,8 +299,8 @@ describe("파일이 바뀌면 화면이 따라 바뀐다", () => {
   });
 });
 
-describe("loaded 장부 자체", () => {
+describe("loaded 월 노트 자체", () => {
   it("테스트 입력이 기대한 모양이다", () => {
-    expect(loaded.ledgers.map((l) => l.path)).toEqual(["할일/2026-09.md", "할일/2026-10.md"]);
+    expect(loaded.monthNotes.map((l) => l.path)).toEqual(["할일/2026-09.md", "할일/2026-10.md"]);
   });
 });

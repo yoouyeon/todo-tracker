@@ -11,12 +11,12 @@ import {
   splitLines,
   type FieldKey,
   type Line,
-} from "./ledgerSyntax";
-import { hasOpenTask, parseLedger } from "./parseLedger";
+} from "./monthNoteSyntax";
+import { hasOpenTask, parseMonthNote } from "./parseMonthNote";
 import type { Deadline, TaskRecord } from "./types";
 
 /**
- * 월 장부 파일의 내용을 받아 새 내용을 돌려주는 순수 함수들.
+ * 월 노트의 내용을 받아 새 내용을 돌려주는 순수 함수들.
  * 파일 전체를 다시 쓰지 않고 바뀌는 줄만 고친다. 다른 항목, 모르는 속성 줄, 줄바꿈(CRLF/LF)은 그대로 둔다.
  */
 
@@ -82,7 +82,7 @@ type Located = { ok: true; task: TaskRecord } | { ok: false; error: EditError };
 
 /** 최신 본문을 다시 파싱해서 화면에서 고른 항목과 같은 항목을 찾는다. 확신할 수 없으면 찾지 않는다. */
 function locate(content: string, path: string, target: TaskTarget): Located {
-  const { tasks } = parseLedger(path, content);
+  const { tasks } = parseMonthNote(path, content);
   const same = tasks.filter((t) => t.sourceText === target.sourceText);
   const hit = same.length === 1 ? same[0] : same.filter((t) => t.line === target.line).length === 1 ? same.find((t) => t.line === target.line) : undefined;
   if (hit) return { ok: true, task: hit };
@@ -180,10 +180,10 @@ function setCheckbox(content: string, headerLine: number, symbol: " " | "x" | "-
 
 /** frontmatter `미완료`를 본문 기준으로 맞춘다. frontmatter가 없으면 만들지 않는다. */
 export function syncOpenFlag(content: string, path: string): string {
-  const ledger = parseLedger(path, content);
-  if (!ledger.frontmatter) return content;
-  const hasOpen = hasOpenTask(ledger.tasks);
-  if (ledger.frontmatter.hasOpen === hasOpen) return content;
+  const monthNote = parseMonthNote(path, content);
+  if (!monthNote.frontmatter) return content;
+  const hasOpen = hasOpenTask(monthNote.tasks);
+  if (monthNote.frontmatter.hasOpen === hasOpen) return content;
 
   const lines = splitLines(content);
   const close = lines.findIndex((line, i) => i > 0 && line.text === "---");
@@ -283,7 +283,7 @@ function taskLines(input: NewTaskInput, title: string, indent = "  "): string[] 
 }
 
 /**
- * 새 항목을 월 파일에 넣는다. `content`가 null이면 파일이 없는 것이므로 기본 장부를 만든다.
+ * 새 항목을 월 파일에 넣는다. `content`가 null이면 파일이 없는 것이므로 새 월 노트를 만든다.
  * 항목은 첫 계획 날짜 순서를 지켜서 넣고, 같은 날짜의 항목이 있으면 그 묶음의 마지막에 넣는다.
  */
 export function insertTask(content: string | null, path: string, input: NewTaskInput): EditResult {
@@ -303,14 +303,14 @@ export function insertTask(content: string | null, path: string, input: NewTaskI
 
   const eol = detectEol(content);
   const item = taskLines(input, title).join(eol);
-  const ledger = parseLedger(path, content);
+  const monthNote = parseMonthNote(path, content);
 
   let after: TaskRecord | null = null;
-  for (const task of ledger.tasks) {
+  for (const task of monthNote.tasks) {
     const first = task.plannedDates[0];
     if (first !== undefined && first <= input.date) after = task;
   }
-  const firstTask = ledger.tasks[0];
+  const firstTask = monthNote.tasks[0];
 
   let next: string;
   if (after) {

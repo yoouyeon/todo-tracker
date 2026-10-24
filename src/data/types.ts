@@ -43,14 +43,14 @@ export interface TaskRecord {
   problems: TaskProblem[];
 }
 
-export interface LedgerFrontmatter {
+export interface MonthNoteFrontmatter {
   month: string | null;
   hasOpen: boolean | null;
 }
 
-export interface ParsedLedger {
+export interface ParsedMonthNote {
   path: string;
-  frontmatter: LedgerFrontmatter | null;
+  frontmatter: MonthNoteFrontmatter | null;
   tasks: TaskRecord[];
   /** 파일 전체에 관한 문제. 항목 문제는 각 항목의 problems에 있다. */
   issues: string[];

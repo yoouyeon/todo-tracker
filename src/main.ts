@@ -49,7 +49,7 @@ export default class TodoTrackerPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
-    // 폴더가 바뀌면 새 폴더의 장부를 다시 읽는다. 폴더 이름을 입력하는 동안에는 매번 훑지 않고 입력이 멈춘 뒤 한 번만 훑는다.
+    // 폴더가 바뀌면 새 폴더의 월 노트를 다시 읽는다. 폴더 이름을 입력하는 동안에는 매번 훑지 않고 입력이 멈춘 뒤 한 번만 훑는다.
     this.rescan();
   }
 

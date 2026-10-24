@@ -1,11 +1,11 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { LedgerSnapshot } from "../../src/data/taskStore";
+import type { MonthNoteSnapshot } from "../../src/data/taskStore";
 import { App } from "../../src/ui/App";
 import type { Tab } from "../../src/ui/StatCards";
 import { NOW, createHostStub, createSource, loaded } from "./support";
 
-function render(snapshot: LedgerSnapshot, initialTab?: Tab): string {
+function render(snapshot: MonthNoteSnapshot, initialTab?: Tab): string {
   // 서버 렌더링이 글자 사이에 넣는 주석을 지워서 화면에 보이는 글만 남긴다.
   return renderToString(<App store={createSource(snapshot)} host={createHostStub()} getNow={NOW} initialTab={initialTab} />).replace(/<!-- -->/g, "");
 }
@@ -121,20 +121,20 @@ describe("App 기록 탭", () => {
 
 describe("App 상태 화면", () => {
   it("읽는 중에는 안내만 보여 준다", () => {
-    const html = render({ loaded: false, folder: "할일", ledgers: [] });
+    const html = render({ loaded: false, folder: "할일", monthNotes: [] });
     expect(html).toContain("장부를 불러오는 중이에요");
     expect(html).not.toContain("지난 계획");
   });
 
-  it("장부가 하나도 없으면 폴더를 알려 주고 첫 할 일을 만들 수 있다", () => {
-    const html = render({ loaded: true, folder: "할일", ledgers: [] });
+  it("월 노트가 하나도 없으면 폴더를 알려 주고 첫 할 일을 만들 수 있다", () => {
+    const html = render({ loaded: true, folder: "할일", monthNotes: [] });
     expect(html).toContain("아직 할 일이 없어요");
     expect(html).toContain("할일/ 폴더의 YYYY-MM.md 파일에서 할 일을 읽어요.");
     expect(html).toContain('aria-label="새 할 일"');
   });
 
   it("폴더 설정이 비어 있으면 vault 루트라고 알려 준다", () => {
-    const html = render({ loaded: true, folder: "", ledgers: [] });
+    const html = render({ loaded: true, folder: "", monthNotes: [] });
     expect(html).toContain("vault 루트 폴더의 YYYY-MM.md 파일");
   });
 });

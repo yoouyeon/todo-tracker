@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLedgerPath, normalizeFolder } from "../../src/data/paths";
+import { isMonthNotePath, normalizeFolder } from "../../src/data/paths";
 
 describe("normalizeFolder", () => {
   it("앞뒤 공백과 슬래시를 뺀다", () => {
@@ -14,25 +14,25 @@ describe("normalizeFolder", () => {
   });
 });
 
-describe("isLedgerPath", () => {
-  it("설정 폴더 바로 아래의 월 장부만 통과시킨다", () => {
-    expect(isLedgerPath("할일/2026-10.md", "할일")).toBe(true);
-    expect(isLedgerPath("할일/2026-10.md", "/할일/")).toBe(true);
+describe("isMonthNotePath", () => {
+  it("설정 폴더 바로 아래의 월 노트만 통과시킨다", () => {
+    expect(isMonthNotePath("할일/2026-10.md", "할일")).toBe(true);
+    expect(isMonthNotePath("할일/2026-10.md", "/할일/")).toBe(true);
   });
 
   it("AGENTS.md 같은 다른 파일은 읽지 않는다", () => {
-    expect(isLedgerPath("할일/AGENTS.md", "할일")).toBe(false);
-    expect(isLedgerPath("할일/2026-10 메모.md", "할일")).toBe(false);
+    expect(isMonthNotePath("할일/AGENTS.md", "할일")).toBe(false);
+    expect(isMonthNotePath("할일/2026-10 메모.md", "할일")).toBe(false);
   });
 
   it("다른 폴더와 하위 폴더의 파일은 읽지 않는다", () => {
-    expect(isLedgerPath("회고/2026-10.md", "할일")).toBe(false);
-    expect(isLedgerPath("할일/보관/2026-09.md", "할일")).toBe(false);
-    expect(isLedgerPath("2026-10.md", "할일")).toBe(false);
+    expect(isMonthNotePath("회고/2026-10.md", "할일")).toBe(false);
+    expect(isMonthNotePath("할일/보관/2026-09.md", "할일")).toBe(false);
+    expect(isMonthNotePath("2026-10.md", "할일")).toBe(false);
   });
 
   it("폴더가 비어 있으면 vault 루트의 파일을 본다", () => {
-    expect(isLedgerPath("2026-10.md", "")).toBe(true);
-    expect(isLedgerPath("할일/2026-10.md", "")).toBe(false);
+    expect(isMonthNotePath("2026-10.md", "")).toBe(true);
+    expect(isMonthNotePath("할일/2026-10.md", "")).toBe(false);
   });
 });

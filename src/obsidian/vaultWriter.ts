@@ -1,8 +1,8 @@
 import { TFile, type App } from "obsidian";
-import type { LedgerWriter } from "../data/actions";
+import type { MonthNoteWriter } from "../data/actions";
 
-/** 월 장부를 `Vault.process()`와 `Vault.create()`로 쓴다. `process`는 읽고 고치고 쓰는 사이에 다른 쓰기가 끼어들지 않게 한다. */
-export function createVaultWriter(app: App): LedgerWriter {
+/** 월 노트를 `Vault.process()`와 `Vault.create()`로 쓴다. `process`는 읽고 고치고 쓰는 사이에 다른 쓰기가 끼어들지 않게 한다. */
+export function createVaultWriter(app: App): MonthNoteWriter {
   return {
     async process(path, fn) {
       const file = app.vault.getAbstractFileByPath(path);

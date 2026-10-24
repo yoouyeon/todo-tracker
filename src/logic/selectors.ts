@@ -1,5 +1,5 @@
-import { toOneLine } from "../data/editLedger";
-import type { ParsedLedger, TaskRecord } from "../data/types";
+import { toOneLine } from "../data/editMonthNote";
+import type { ParsedMonthNote, TaskRecord } from "../data/types";
 import { ageInDays, bucketOf, deadlineState, isStale, monthOf, type Bucket, type DeadlineState } from "./dates";
 import { deadlineLabel } from "./format";
 
@@ -80,18 +80,18 @@ export interface Board {
  * 제목이 완전히 같은 진행 중 항목. 비슷한 이름은 찾지 않고, 자동으로 합치지도 않는다.
  * 새 할 일을 만들 때 기존 항목에 날짜를 더할지 새로 만들지 사용자가 고르게 하는 데 쓴다.
  */
-export function findOpenDuplicates(ledgers: ParsedLedger[], title: string): TaskRecord[] {
+export function findOpenDuplicates(monthNotes: ParsedMonthNote[], title: string): TaskRecord[] {
   const wanted = toOneLine(title);
   if (wanted === "") return [];
-  return ledgers.flatMap((ledger) => ledger.tasks).filter((t) => t.problems.length === 0 && t.status === "open" && t.title === wanted);
+  return monthNotes.flatMap((monthNote) => monthNote.tasks).filter((t) => t.problems.length === 0 && t.status === "open" && t.title === wanted);
 }
 
-export function buildItems(ledgers: ParsedLedger[], clock: Clock): TaskItem[] {
+export function buildItems(monthNotes: ParsedMonthNote[], clock: Clock): TaskItem[] {
   const items: TaskItem[] = [];
   const seen = new Map<string, number>();
-  const sorted = [...ledgers].sort((a, b) => a.path.localeCompare(b.path));
-  for (const ledger of sorted) {
-    for (const task of ledger.tasks) {
+  const sorted = [...monthNotes].sort((a, b) => a.path.localeCompare(b.path));
+  for (const monthNote of sorted) {
+    for (const task of monthNote.tasks) {
       const valid = task.problems.length === 0;
       const first = valid ? (task.plannedDates[0] ?? null) : null;
       const current = valid ? (task.plannedDates[task.plannedDates.length - 1] ?? null) : null;
@@ -135,8 +135,8 @@ function matches(item: TaskItem, filters: Filters): boolean {
 /** 기록에서 정렬에 쓰는 처리한 날짜. 완료·취소 날짜가 없으면 가장 뒤로 간다. */
 const processedOn = (item: TaskItem) => item.task.completedOn ?? item.task.cancelledOn ?? "";
 
-export function buildBoard(ledgers: ParsedLedger[], clock: Clock, filters: Filters = NO_FILTERS): Board {
-  const items = buildItems(ledgers, clock);
+export function buildBoard(monthNotes: ParsedMonthNote[], clock: Clock, filters: Filters = NO_FILTERS): Board {
+  const items = buildItems(monthNotes, clock);
   const valid = items.filter((i) => i.task.problems.length === 0);
   const open = valid.filter((i) => i.task.status === "open");
   const closed = valid.filter((i) => i.task.status !== "open");
@@ -192,6 +192,6 @@ export function buildBoard(ledgers: ParsedLedger[], clock: Clock, filters: Filte
     counts,
     categories,
     recordMonths,
-    fileIssues: ledgers.flatMap((l) => l.issues.map((issue) => `${l.path}: ${issue}`)),
+    fileIssues: monthNotes.flatMap((l) => l.issues.map((issue) => `${l.path}: ${issue}`)),
   };
 }

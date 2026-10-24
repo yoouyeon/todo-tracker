@@ -20,7 +20,7 @@ export function formatLongDate(date: string): string {
 }
 
 /** `2026-10-18` → `2026-10.md`. 새 항목이 들어갈 월 파일 이름 */
-export function ledgerFileName(date: string): string {
+export function monthNoteFileName(date: string): string {
   return `${monthOf(date)}.md`;
 }
 

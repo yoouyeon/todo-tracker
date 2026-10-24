@@ -1,9 +1,9 @@
 import { useId, useRef, useState, type ReactNode } from "react";
 import type { ActionResult } from "../data/actions";
-import { plannedDateError, type NewTaskInput, type TaskPatch } from "../data/editLedger";
+import { plannedDateError, type NewTaskInput, type TaskPatch } from "../data/editMonthNote";
 import type { TaskRecord } from "../data/types";
 import { addDays } from "../logic/dates";
-import { formatMonthDay, ledgerFileName } from "../logic/format";
+import { formatMonthDay, monthNoteFileName } from "../logic/format";
 import { nextNewTaskStep } from "./newTaskFlow";
 import { T } from "./strings";
 
@@ -332,7 +332,7 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
           ))}
           <label className="tt-choice">
             <input type="radio" name="duplicate-choice" checked={choice === "new"} onChange={() => setChoice("new")} />
-            <span>{T.form.createNew(ledgerFileName(date))}</span>
+            <span>{T.form.createNew(monthNoteFileName(date))}</span>
           </label>
         </fieldset>
       )}

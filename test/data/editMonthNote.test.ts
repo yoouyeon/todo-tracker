@@ -9,8 +9,8 @@ import {
   updateTask,
   type EditResult,
   type TaskTarget,
-} from "../../src/data/editLedger";
-import { parseLedger } from "../../src/data/parseLedger";
+} from "../../src/data/editMonthNote";
+import { parseMonthNote } from "../../src/data/parseMonthNote";
 import type { TaskRecord } from "../../src/data/types";
 
 const PATH = "할일/2026-10.md";
@@ -45,7 +45,7 @@ const BASE = [
   "  - 하기로 한 날: 2026-10-20",
 ].join("\n");
 
-const tasksOf = (content: string, path = PATH) => parseLedger(path, content).tasks;
+const tasksOf = (content: string, path = PATH) => parseMonthNote(path, content).tasks;
 const find = (content: string, title: string, nth = 0): TaskRecord => {
   const task = tasksOf(content).filter((t) => t.title === title)[nth];
   if (!task) throw new Error(`"${title}" 항목이 없음`);
@@ -101,7 +101,7 @@ describe("completeTask", () => {
 
   it("진행 중 항목이 남아 있으면 미완료를 true로 둔다", () => {
     const result = okContent(completeTask(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
-    expect(parseLedger(PATH, result).frontmatter?.hasOpen).toBe(true);
+    expect(parseMonthNote(PATH, result).frontmatter?.hasOpen).toBe(true);
     expect(result.split("\n")[2]).toBe("미완료: true");
   });
 
@@ -109,7 +109,7 @@ describe("completeTask", () => {
     const single = ["---", "월: 2026-10", "미완료: true", "---", "", "- [ ] 하나뿐", "  - 하기로 한 날: 2026-10-18", ""].join("\n");
     const result = okContent(completeTask(single, PATH, target(single, "하나뿐"), "2026-10-18"));
     expect(result.split("\n")[2]).toBe("미완료: false");
-    expect(parseLedger(PATH, result).issues).toEqual([]);
+    expect(parseMonthNote(PATH, result).issues).toEqual([]);
   });
 
   it("이미 끝났거나 읽을 수 없는 항목은 고치지 않는다", () => {
@@ -329,10 +329,10 @@ describe("updateTask", () => {
 });
 
 describe("insertTask", () => {
-  it("파일이 없으면 월과 미완료가 있는 기본 장부를 만든다", () => {
+  it("파일이 없으면 월과 미완료가 있는 새 월 노트를 만든다", () => {
     const content = okContent(insertTask(null, "할일/2026-12.md", { title: "연말 정리", date: "2026-12-30" }));
     expect(content).toBe(["---", "월: 2026-12", "미완료: true", "---", "", "# 2026-12 할 일", "", "- [ ] 연말 정리", "  - 하기로 한 날: 2026-12-30", ""].join("\n"));
-    expect(parseLedger("할일/2026-12.md", content).issues).toEqual([]);
+    expect(parseMonthNote("할일/2026-12.md", content).issues).toEqual([]);
   });
 
   it("첫 계획 날짜 순서에 맞는 자리에 넣는다", () => {
@@ -449,8 +449,8 @@ describe("syncOpenFlag", () => {
   });
 
   it("다른 frontmatter 필드는 건드리지 않는다", () => {
-    const content = ["---", "월: 2026-10", "미완료: false", "태그: 장부", "---", "", "- [ ] 일", "  - 하기로 한 날: 2026-10-18", ""].join("\n");
-    expect(syncOpenFlag(content, PATH).split("\n").slice(0, 5)).toEqual(["---", "월: 2026-10", "미완료: true", "태그: 장부", "---"]);
+    const content = ["---", "월: 2026-10", "미완료: false", "태그: 할일", "---", "", "- [ ] 일", "  - 하기로 한 날: 2026-10-18", ""].join("\n");
+    expect(syncOpenFlag(content, PATH).split("\n").slice(0, 5)).toEqual(["---", "월: 2026-10", "미완료: true", "태그: 할일", "---"]);
   });
 
   it("frontmatter가 없는 파일에는 만들지 않는다", () => {

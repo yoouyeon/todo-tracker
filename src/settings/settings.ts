@@ -3,7 +3,7 @@ import type TodoTrackerPlugin from "../main";
 import { T } from "../ui/strings";
 
 export interface TodoTrackerSettings {
-  /** 월별 장부 파일이 있는 폴더 */
+  /** 월별 할 일 노트가 있는 폴더 */
   folder: string;
 }
 

@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { parseLedger } from "../../src/data/parseLedger";
+import { parseMonthNote } from "../../src/data/parseMonthNote";
 import { buildBoard, findOpenDuplicates, NO_FILTERS, type Board, type Clock, type Filters } from "../../src/logic/selectors";
 
 const fixture = (name: string) => readFileSync(new URL(`../fixtures/${name}`, import.meta.url), "utf8");
-const ledgers = [parseLedger("할일/2026-10.md", fixture("2026-10.md")), parseLedger("할일/2026-09.md", fixture("2026-09.md"))];
+const monthNotes = [parseMonthNote("할일/2026-10.md", fixture("2026-10.md")), parseMonthNote("할일/2026-09.md", fixture("2026-09.md"))];
 const clock: Clock = { today: "2026-10-18", time: "19:00" };
-const board = (filters: Partial<Filters> = {}, c: Clock = clock) => buildBoard(ledgers, c, { ...NO_FILTERS, ...filters });
+const board = (filters: Partial<Filters> = {}, c: Clock = clock) => buildBoard(monthNotes, c, { ...NO_FILTERS, ...filters });
 const titles = (items: Board["past"]) => items.map((i) => i.task.title);
 
 describe("buildBoard: 묶음", () => {
@@ -61,7 +61,7 @@ describe("buildBoard: 오래 밀린 일과 정렬", () => {
   });
 
   it("지난 계획은 오래 밀린 일부터 오래된 순으로, 그 뒤에 마감, 현재 계획 날짜 순이다", () => {
-    const october = parseLedger(
+    const october = parseMonthNote(
       "할일/2026-10.md",
       "---\n월: 2026-10\n미완료: true\n---\n\n" +
         "- [ ] 마감 지난 일\n  - 하기로 한 날: 2026-10-16\n  - 마감일: 2026-10-17\n" +
@@ -69,7 +69,7 @@ describe("buildBoard: 오래 밀린 일과 정렬", () => {
         "- [ ] 마감 임박한 그제 일\n  - 하기로 한 날: 2026-10-15\n  - 마감일: 2026-10-20\n" +
         "- [ ] 마감 여유 있는 그제 일\n  - 하기로 한 날: 2026-10-15\n  - 마감일: 2026-11-30\n",
     );
-    const september = parseLedger("할일/2026-09.md", fixture("2026-09.md"));
+    const september = parseMonthNote("할일/2026-09.md", fixture("2026-09.md"));
     const result = buildBoard([october, september], clock, NO_FILTERS);
     expect(titles(result.past)).toEqual([
       "겨울옷 꺼내기",
@@ -164,24 +164,24 @@ describe("buildBoard: 기록", () => {
 
 describe("findOpenDuplicates", () => {
   it("제목이 완전히 같은 진행 중 항목을 찾는다", () => {
-    const found = findOpenDuplicates(ledgers, "알고리즘 2문제");
+    const found = findOpenDuplicates(monthNotes, "알고리즘 2문제");
     expect(found.map((t) => t.status)).toEqual(["open"]);
     expect(found[0]?.plannedDates).toEqual(["2026-10-17", "2026-10-18"]);
   });
 
   it("끝난 항목과 읽을 수 없는 항목은 찾지 않는다", () => {
-    expect(findOpenDuplicates(ledgers, "아침 스트레칭")).toEqual([]);
-    expect(findOpenDuplicates(ledgers, "알 수 없는 기호")).toEqual([]);
+    expect(findOpenDuplicates(monthNotes, "아침 스트레칭")).toEqual([]);
+    expect(findOpenDuplicates(monthNotes, "알 수 없는 기호")).toEqual([]);
   });
 
   it("비슷한 이름은 같다고 보지 않는다", () => {
-    expect(findOpenDuplicates(ledgers, "알고리즘")).toEqual([]);
-    expect(findOpenDuplicates(ledgers, "알고리즘 3문제")).toEqual([]);
+    expect(findOpenDuplicates(monthNotes, "알고리즘")).toEqual([]);
+    expect(findOpenDuplicates(monthNotes, "알고리즘 3문제")).toEqual([]);
   });
 
   it("입력의 줄바꿈과 연속 공백은 저장될 때처럼 정리해서 비교한다", () => {
-    expect(findOpenDuplicates(ledgers, "  알고리즘   2문제 ")).toHaveLength(1);
-    expect(findOpenDuplicates(ledgers, "   ")).toEqual([]);
+    expect(findOpenDuplicates(monthNotes, "  알고리즘   2문제 ")).toHaveLength(1);
+    expect(findOpenDuplicates(monthNotes, "   ")).toEqual([]);
   });
 });
 
@@ -208,7 +208,7 @@ describe("buildBoard: 개수", () => {
   });
 
   it("항목이 같은 이름과 날짜여도 key가 겹치지 않는다", () => {
-    const dup = parseLedger(
+    const dup = parseMonthNote(
       "할일/2026-10.md",
       "---\n월: 2026-10\n미완료: true\n---\n\n- [ ] 운동\n  - 하기로 한 날: 2026-10-07\n\n- [ ] 운동\n  - 하기로 한 날: 2026-10-07\n",
     );
@@ -218,7 +218,7 @@ describe("buildBoard: 개수", () => {
   });
 
   it("파일 단위 문제를 경로와 함께 모은다", () => {
-    const wrongMonth = parseLedger("할일/2026-11.md", fixture("2026-10.md"));
+    const wrongMonth = parseMonthNote("할일/2026-11.md", fixture("2026-10.md"));
     const b = buildBoard([wrongMonth], clock, NO_FILTERS);
     expect(b.fileIssues).toContain("할일/2026-11.md: frontmatter 월(2026-10)이 파일 이름(2026-11)과 다름");
   });
