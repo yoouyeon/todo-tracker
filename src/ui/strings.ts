@@ -143,7 +143,7 @@ export const T = {
     aliasNote: (alias: string) => `다른 이름(${alias})은 플러그인에서 고치지 않아요. 노트에서 직접 수정하세요.`,
     editSubmit: "저장",
 
-    createDesc: "처음 하기로 한 날의 월 파일에 추가해요.",
+    createDesc: "처음 하기로 한 날의 월 노트에 추가해요.",
     titleLabel: "제목",
     firstDate: "처음 하기로 한 날",
     createSubmit: "추가",
