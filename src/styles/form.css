@@ -29,6 +29,31 @@
   grid-template-columns: minmax(0, 1fr) 120px;
   gap: var(--size-4-2);
 }
+/* 옵시디언 기본 CSS는 날짜 칸만 꾸미고 시각 칸은 꾸미지 않아서, 날짜 칸과 같은 변수로 맞춘다. */
+.tt-form input[type="time"] {
+  background: var(--background-modifier-form-field);
+  border: var(--input-border-width) solid var(--background-modifier-border);
+  border-radius: var(--input-radius);
+  padding: var(--input-padding);
+  color: var(--text-normal);
+  font-family: inherit;
+  font-size: var(--font-ui-small);
+  font-variant-numeric: tabular-nums;
+  transition: var(--input-transition);
+  outline: none;
+}
+@media (hover: hover) {
+  .tt-form input[type="time"]:where(:not(:disabled)):hover {
+    background-color: var(--background-modifier-form-field-hover);
+    border-color: var(--background-modifier-border-hover);
+  }
+}
+.tt-form input[type="time"]:focus {
+  border-color: var(--background-modifier-border-focus);
+}
+.tt-form input[type="time"]:focus-visible {
+  box-shadow: 0 0 0 var(--input-border-width-focus) var(--background-modifier-border-focus);
+}
 .tt-quick {
   display: flex;
   gap: var(--size-2-3);
