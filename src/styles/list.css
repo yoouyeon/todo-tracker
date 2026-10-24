@@ -75,8 +75,8 @@ body:not(.is-mobile) .tt-item:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--checkbox-size);
-  height: var(--checkbox-size);
+  width: var(--tt-check-size);
+  height: var(--tt-check-size);
   border: 1.5px solid var(--checkbox-border-color);
   border-radius: 50%;
   color: var(--text-muted);
@@ -181,7 +181,7 @@ body.is-mobile .tt-touch-only {
   display: flex;
   flex-direction: column;
   gap: var(--size-4-3);
-  padding: var(--size-2-2) var(--size-4-3) var(--size-4-3) calc(var(--checkbox-size) + var(--size-4-3) + var(--size-4-2));
+  padding: var(--size-2-2) var(--size-4-3) var(--size-4-3) calc(var(--tt-check-size) + var(--size-4-3) + var(--size-4-2));
   font-size: var(--font-ui-small);
 }
 .tt-fields {

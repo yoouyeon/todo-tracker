@@ -8,6 +8,8 @@
 .tt-view {
   /* 사이드바처럼 좁은 곳에 두었을 때를 화면 종류가 아니라 뷰의 폭으로 판단한다. */
   container-type: inline-size;
+  /* 체크 원 크기. 옵시디언의 --checkbox-size는 본문 글꼴 크기를 따라가서 나머지 UI와 따로 커지므로 아이콘 크기를 쓴다. */
+  --tt-check-size: var(--icon-s);
   max-width: 760px;
   margin: 0 auto;
   padding: var(--size-4-5) var(--size-4-6) var(--size-4-4);
