@@ -3,7 +3,7 @@
   "name": "Todo Tracker",
   "version": "0.1.0",
   "minAppVersion": "1.11.0",
-  "description": "Read and edit monthly Markdown todo notes: overdue, today and upcoming at a glance.",
+  "description": "Track monthly Markdown todo notes: overdue, today and upcoming at a glance. Korean UI and note format only.",
   "author": "yoouyeon",
   "authorUrl": "https://github.com/yoouyeon",
   "isDesktopOnly": false
