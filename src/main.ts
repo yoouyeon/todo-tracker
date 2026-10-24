@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFile } from "obsidian";
+import { Notice, Plugin, TFile, debounce } from "obsidian";
 import { TaskActions } from "./data/actions";
 import { TaskStore } from "./data/taskStore";
 import type { TaskRecord } from "./data/types";
@@ -49,9 +49,11 @@ export default class TodoTrackerPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
-    // 폴더가 바뀌면 새 폴더의 장부를 다시 읽는다.
-    await this.store.scan();
+    // 폴더가 바뀌면 새 폴더의 장부를 다시 읽는다. 폴더 이름을 입력하는 동안에는 매번 훑지 않고 입력이 멈춘 뒤 한 번만 훑는다.
+    this.rescan();
   }
+
+  private readonly rescan = debounce(() => void this.store.scan(), 500, true);
 
   /** 이미 열려 있으면 그 탭으로 이동하고, 없으면 새 탭에 연다. */
   async activateView(): Promise<void> {
