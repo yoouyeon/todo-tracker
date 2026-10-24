@@ -166,7 +166,7 @@ describe("findOpenDuplicates", () => {
   it("제목이 완전히 같은 진행 중 항목을 찾는다", () => {
     const found = findOpenDuplicates(monthNotes, "알고리즘 2문제");
     expect(found.map((t) => t.status)).toEqual(["open"]);
-    expect(found[0]?.plannedDates).toEqual(["2026-10-17", "2026-10-18"]);
+    expect([found[0]?.firstPlanned, found[0]?.planned]).toEqual(["2026-10-17", "2026-10-18"]);
   });
 
   it("끝난 항목과 읽을 수 없는 항목은 찾지 않는다", () => {

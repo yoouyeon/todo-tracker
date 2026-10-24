@@ -1,8 +1,8 @@
 import { isValidDate, monthOf } from "../logic/dates";
 import {
   MESSAGES,
-  addPlannedDate,
   cancelTask,
+  changePlannedDate,
   completeTask,
   insertTask,
   updateTask,
@@ -46,8 +46,8 @@ export class TaskActions {
     return this.editExisting(task, (content) => cancelTask(content, task.sourcePath, task, date, reason));
   }
 
-  addDate(task: TaskRecord, date: string): Promise<ActionResult> {
-    return this.editExisting(task, (content) => addPlannedDate(content, task.sourcePath, task, date));
+  changeDate(task: TaskRecord, date: string): Promise<ActionResult> {
+    return this.editExisting(task, (content) => changePlannedDate(content, task.sourcePath, task, date));
   }
 
   update(task: TaskRecord, patch: TaskPatch): Promise<ActionResult> {

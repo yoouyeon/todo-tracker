@@ -97,7 +97,7 @@ export const T = {
 
   action: {
     complete: "완료",
-    addDate: "날짜 추가",
+    changeDate: "날짜 바꾸기",
     edit: "편집",
     cancel: "취소…",
   },
@@ -116,7 +116,7 @@ export const T = {
     back: "돌아가기",
     completeTitle: "완료로 기록",
     cancelTitle: "할 일 취소",
-    dateTitle: "계획 날짜 추가",
+    dateTitle: "하기로 한 날 바꾸기",
     editTitle: "편집",
     createTitle: "새 할 일",
 
@@ -133,8 +133,8 @@ export const T = {
     today: (date: string) => `오늘 ${date}`,
     tomorrow: (date: string) => `내일 ${date}`,
     otherDate: "다른 날짜",
-    dateHelp: (dates: string) => `기존 날짜 ${dates}는 그대로 두고 새 날짜를 이력에 추가해요.`,
-    dateSubmit: "추가",
+    dateHelp: (current: string) => `지금은 ${current}에 하기로 했어요. 처음 하기로 한 날은 바뀌지 않아요.`,
+    dateSubmit: "바꾸기",
 
     deadline: "외부 마감일",
     deadlineTime: "마감 시각 (선택)",
@@ -149,7 +149,7 @@ export const T = {
     createSubmit: "추가",
     duplicateTitle: (title: string) => `진행 중인 같은 제목이 이미 있어요: ${title}`,
     duplicateAsk: "어떻게 할까요?",
-    addDateToExisting: (date: string, file: string, first: string) => `기존 항목에 ${date} 추가 (${file} · 처음 ${first})`,
+    changeExisting: (date: string, file: string, first: string) => `기존 항목을 ${date}에 하기로 바꾸기 (${file} · 처음 ${first})`,
     createNew: (file: string) => `새 항목으로 만들기 (${file})`,
     chooseFirst: "기존 항목에 날짜를 추가할지, 새로 만들지 골라 주세요.",
     deadlineNeedsDate: "마감 시각만 있을 수 없어요. 마감 날짜를 함께 입력해 주세요.",
@@ -159,7 +159,7 @@ export const T = {
   notice: {
     completed: (title: string) => `완료로 기록했어요: ${title}`,
     cancelled: (title: string) => `취소로 기록했어요: ${title}`,
-    dateAdded: (title: string, date: string) => `${date} 추가: ${title}`,
+    dateChanged: (title: string, date: string) => `${date}에 하기로 했어요: ${title}`,
     updated: (title: string) => `저장했어요: ${title}`,
     created: (file: string) => `${file}에 추가했어요`,
     failed: "저장하지 못했어요",

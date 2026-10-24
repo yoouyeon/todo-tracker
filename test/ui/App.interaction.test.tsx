@@ -111,6 +111,17 @@ describe("상세 정보", () => {
     expect(itemOf("여행 사진 정리").querySelector(".tt-detail")).toBeNull();
   });
 
+  it("하기로 한 날을 바꾼 항목은 처음 날짜와 지금 날짜를 함께 보여 준다", () => {
+    setup();
+    fireEvent.click(titleButton("여행 사진 정리"));
+    const changed = [...(itemOf("여행 사진 정리").querySelectorAll(".tt-date") ?? [])].map((d) => d.textContent);
+    expect(changed).toEqual(["10/9처음", "10/12현재"]);
+
+    fireEvent.click(titleButton("부모님 선물 주문"));
+    const unchanged = [...(itemOf("부모님 선물 주문").querySelectorAll(".tt-date") ?? [])].map((d) => d.textContent);
+    expect(unchanged).toEqual(["10/22"]);
+  });
+
   it("처음 계획한 날이 아직 오지 않았으면 지난 일수를 보여 주지 않는다", () => {
     setup();
     fireEvent.click(titleButton("부모님 선물 주문"));
@@ -150,7 +161,7 @@ describe("상세 정보", () => {
     // 모바일에서만 보이는 버튼도 같은 요청을 한다.
     fireEvent.click(detail.getByRole("button", { name: "완료" }));
     expect(host.complete).toHaveBeenCalledWith(task, TODAY);
-    fireEvent.click(detail.getByRole("button", { name: "날짜 추가" }));
+    fireEvent.click(detail.getByRole("button", { name: "날짜 바꾸기" }));
     expect(host.pickDate).toHaveBeenCalledWith(task, TODAY);
   });
 

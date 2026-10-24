@@ -144,9 +144,7 @@ export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }
 
 export function DateForm({ task, today, run, onSuccess, onCancel, onOpenNote }: TaskFormProps & { today: string; run: (date: string) => Promise<ActionResult> }) {
   const tomorrow = addDays(today, 1);
-  const latest = task.plannedDates[task.plannedDates.length - 1] ?? today;
-  const earliestAllowed = addDays(latest, 1);
-  const suggested = addDays(today, 2) > earliestAllowed ? addDays(today, 2) : earliestAllowed;
+  const suggested = addDays(today, 2);
   const [date, setDate] = useState(suggested);
   const { error, busy, submit } = useSubmit(onSuccess);
 
@@ -173,9 +171,9 @@ export function DateForm({ task, today, run, onSuccess, onCancel, onOpenNote }: 
       </div>
       <label className="tt-field">
         <span>{T.form.otherDate}</span>
-        <input type="date" value={date} min={earliestAllowed} autoFocus onChange={(e) => setDate(e.target.value)} />
+        <input type="date" value={date} autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
-      <p className="tt-help">{T.form.dateHelp(task.plannedDates.map(formatMonthDay).join(", "))}</p>
+      {task.planned && <p className="tt-help">{T.form.dateHelp(formatMonthDay(task.planned))}</p>}
     </FormFrame>
   );
 }
@@ -230,12 +228,12 @@ interface NewTaskFormProps {
   /** 제목이 완전히 같은 진행 중 항목 */
   findDuplicates: (title: string) => TaskRecord[];
   onCreate: (input: NewTaskInput) => Promise<ActionResult>;
-  onAddDate: (task: TaskRecord, date: string) => Promise<ActionResult>;
+  onChangeDate: (task: TaskRecord, date: string) => Promise<ActionResult>;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate, onAddDate, onSuccess, onCancel }: NewTaskFormProps) {
+export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate, onChangeDate, onSuccess, onCancel }: NewTaskFormProps) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(defaultDate);
   const [category, setCategory] = useState("");
@@ -259,7 +257,7 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
     if (step.kind === "choose") return failed(T.form.chooseFirst);
     if (step.kind === "add-date") {
       const existing = found[step.index];
-      return existing ? onAddDate(existing, date) : failed(T.form.chooseFirst);
+      return existing ? onChangeDate(existing, date) : failed(T.form.chooseFirst);
     }
     return onCreate({
       title,
@@ -327,7 +325,7 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
           {duplicates.map((dup, i) => (
             <label key={`${dup.sourcePath}:${dup.line}`} className="tt-choice">
               <input type="radio" name="duplicate-choice" checked={choice === i} onChange={() => setChoice(i)} />
-              <span>{T.form.addDateToExisting(formatMonthDay(date), dup.sourcePath, formatMonthDay(dup.plannedDates[0] ?? date))}</span>
+              <span>{T.form.changeExisting(formatMonthDay(date), dup.sourcePath, formatMonthDay(dup.firstPlanned ?? date))}</span>
             </label>
           ))}
           <label className="tt-choice">

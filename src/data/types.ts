@@ -11,7 +11,7 @@ export interface Deadline {
  * 항목을 믿고 수정해도 되는지 판단하는 문제 종류.
  * 문제가 하나라도 있는 항목은 읽기 전용으로 보여 준다.
  */
-export type ProblemCode = "checkbox" | "title" | "plannedDates" | "date" | "duplicateField";
+export type ProblemCode = "checkbox" | "title" | "planned" | "date" | "duplicateField";
 
 export interface TaskProblem {
   code: ProblemCode;
@@ -28,8 +28,10 @@ export interface TaskRecord {
   title: string;
   /** 체크박스 기호가 올바르지 않으면 problems에 `checkbox`가 있고 값은 "open"이다. */
   status: TaskStatus;
-  /** 오래된 순서. 잘못된 날짜는 빠진다. */
-  plannedDates: string[];
+  /** 처음 하기로 한 날. `처음 하기로 한 날` 속성이 없으면 `planned`와 같다. 읽을 수 없으면 null */
+  firstPlanned: string | null;
+  /** 지금 하기로 한 날(`하기로 한 날`). 읽을 수 없으면 null */
+  planned: string | null;
   deadline: Deadline | null;
   completedOn: string | null;
   cancelledOn: string | null;

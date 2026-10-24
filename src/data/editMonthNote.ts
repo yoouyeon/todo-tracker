@@ -66,13 +66,11 @@ export interface NewTaskInput {
 /** 속성 줄은 한 줄이라 줄바꿈과 연속 공백을 공백 하나로 줄인다. */
 export const toOneLine = (value: string): string => value.replace(/\s+/g, " ").trim();
 
-/** 새 계획 날짜를 더할 수 있는지. 안 되면 이유를 돌려준다. */
-export function plannedDateError(task: Pick<TaskRecord, "plannedDates">, date: string): string | null {
+/** 하기로 한 날을 이 날짜로 바꿀 수 있는지. 안 되면 이유를 돌려준다. */
+export function plannedDateError(task: Pick<TaskRecord, "planned">, date: string): string | null {
   if (!isValidDate(date)) return MESSAGES.badDate;
-  const latest = task.plannedDates[task.plannedDates.length - 1];
-  if (latest === undefined) return MESSAGES.unreadable;
-  if (task.plannedDates.includes(date)) return "이미 계획한 날짜예요.";
-  if (date < latest) return `현재 계획 날짜(${formatMonthDay(latest)})보다 뒤의 날짜만 추가할 수 있어요.`;
+  if (task.planned === null) return MESSAGES.unreadable;
+  if (date === task.planned) return `이미 ${formatMonthDay(date)}에 하기로 했어요.`;
   return null;
 }
 
@@ -230,13 +228,21 @@ export function cancelTask(content: string, path: string, target: TaskTarget, da
   return ok(syncOpenFlag(next, path));
 }
 
-export function addPlannedDate(content: string, path: string, target: TaskTarget, date: string): EditResult {
+/**
+ * 하기로 한 날을 바꾼다. 처음 바꿀 때는 원래 날짜를 `처음 하기로 한 날`로 남긴다.
+ * 이미 `처음 하기로 한 날`이 있으면 그 줄은 건드리지 않는다.
+ */
+export function changePlannedDate(content: string, path: string, target: TaskTarget, date: string): EditResult {
   const found = locateOpen(content, path, target);
   if (!found.ok) return { ok: false, error: found.error };
-  const error = plannedDateError(found.task, date);
+  const { task } = found;
+  const error = plannedDateError(task, date);
   if (error) return fail("invalid", error);
-  const dates = [...found.task.plannedDates, date].join(", ");
-  return ok(syncOpenFlag(setProperty(content, found.task.line, FIELD.planned, dates), path));
+  let next = content;
+  if (findProperty(readBlock(next, task.line), FIELD.firstPlanned) === -1 && task.planned !== null) {
+    next = setProperty(next, task.line, FIELD.firstPlanned, task.planned);
+  }
+  return ok(setProperty(next, task.line, FIELD.planned, date));
 }
 
 export function updateTask(content: string, path: string, target: TaskTarget, patch: TaskPatch): EditResult {
@@ -307,8 +313,8 @@ export function insertTask(content: string | null, path: string, input: NewTaskI
 
   let after: TaskRecord | null = null;
   for (const task of monthNote.tasks) {
-    const first = task.plannedDates[0];
-    if (first !== undefined && first <= input.date) after = task;
+    const first = task.firstPlanned;
+    if (first !== null && first <= input.date) after = task;
   }
   const firstTask = monthNote.tasks[0];
 

@@ -85,7 +85,7 @@ export function TaskRow({ item, today, expanded, onToggle, host }: RowProps) {
             </button>
             <button type="button" onClick={(e) => host.showMenu(e.nativeEvent, task, today, "date")}>
               <Icon name="calendar" />
-              {item.current ? formatMonthDay(item.current) : T.action.addDate}
+              {item.current ? formatMonthDay(item.current) : T.action.changeDate}
             </button>
             <button type="button" className="clickable-icon" aria-label={T.more} onClick={(e) => host.showMenu(e.nativeEvent, task, today, "task")}>
               <Icon name="ellipsis" />
@@ -100,24 +100,27 @@ export function TaskRow({ item, today, expanded, onToggle, host }: RowProps) {
 
 function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host: AppHost }) {
   const { task } = item;
-  const last = task.plannedDates.length - 1;
   const open = task.status === "open";
+  // 하기로 한 날을 바꾼 적이 있으면 처음 날짜와 지금 날짜를 나란히 보여 준다.
+  const changed = task.firstPlanned !== null && task.firstPlanned !== task.planned;
   return (
     <div className="tt-detail">
       <dl className="tt-fields">
         <dt>{T.field.planned}</dt>
         <dd>
           <div className="tt-dates">
-            {task.plannedDates.map((date, i) => {
-              const current = open && i === last;
-              return (
-                <span key={date} className={cx("tt-date", current && "is-current")}>
-                  {formatMonthDay(date)}
-                  {i === 0 && last > 0 && <small>{T.first}</small>}
-                  {current && last > 0 && <small>{T.current}</small>}
-                </span>
-              );
-            })}
+            {changed && task.firstPlanned && (
+              <span className="tt-date">
+                {formatMonthDay(task.firstPlanned)}
+                <small>{T.first}</small>
+              </span>
+            )}
+            {task.planned && (
+              <span className={cx("tt-date", open && "is-current")}>
+                {formatMonthDay(task.planned)}
+                {changed && <small>{T.current}</small>}
+              </span>
+            )}
           </div>
           {/* 처음 계획한 날이 오늘이거나 아직 오지 않았으면 지난 일수가 없으므로 보여 주지 않는다. */}
           {open && item.age > 0 && (
@@ -186,7 +189,7 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
             </button>
             <button type="button" className="tt-touch-only" onClick={() => host.pickDate(task, today)}>
               <Icon name="calendar-plus" />
-              {T.action.addDate}
+              {T.action.changeDate}
             </button>
             <button type="button" onClick={() => host.edit(task)}>
               <Icon name="pencil" />

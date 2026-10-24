@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  addPlannedDate,
   cancelTask,
+  changePlannedDate,
   completeTask,
   insertTask,
   plannedDateError,
@@ -34,7 +34,8 @@ const BASE = [
   "  - 분류: 개인",
   "",
   "- [ ] 보고서 제출",
-  "  - 하기로 한 날: 2026-10-14, 2026-10-18",
+  "  - 처음 하기로 한 날: 2026-10-14",
+  "  - 하기로 한 날: 2026-10-18",
   "  - 마감일: 2026-10-17 18:00",
   "  - 분류: 공부",
   "  - 링크: https://example.com",
@@ -79,9 +80,10 @@ describe("completeTask", () => {
 
   it("마감일이 있으면 마감일 뒤에 넣는다", () => {
     const result = okContent(completeTask(BASE, PATH, target(BASE, "보고서 제출"), "2026-10-18"));
-    expect(block(result, "보고서 제출").slice(0, 5)).toEqual([
+    expect(block(result, "보고서 제출").slice(0, 6)).toEqual([
       "- [x] 보고서 제출",
-      "  - 하기로 한 날: 2026-10-14, 2026-10-18",
+      "  - 처음 하기로 한 날: 2026-10-14",
+      "  - 하기로 한 날: 2026-10-18",
       "  - 마감일: 2026-10-17 18:00",
       "  - 완료한 날: 2026-10-18",
       "  - 분류: 공부",
@@ -204,52 +206,51 @@ describe("cancelTask", () => {
   });
 });
 
-describe("addPlannedDate", () => {
-  it("계획 날짜 이력 끝에 새 날짜를 더하고 기존 날짜를 지우지 않는다", () => {
-    const result = okContent(addPlannedDate(BASE, PATH, target(BASE, "보고서 제출"), "2026-10-19"));
-    const task = find(result, "보고서 제출");
-    expect(task.plannedDates).toEqual(["2026-10-14", "2026-10-18", "2026-10-19"]);
-    expect(task.problems).toEqual([]);
-    expect(block(result, "보고서 제출")[1]).toBe("  - 하기로 한 날: 2026-10-14, 2026-10-18, 2026-10-19");
+describe("changePlannedDate", () => {
+  it("처음 바꿀 때는 원래 날짜를 `처음 하기로 한 날`로 남기고 하기로 한 날을 바꾼다", () => {
+    const result = okContent(changePlannedDate(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
+    expect(block(result, "치과 예약 잡기").slice(0, 3)).toEqual(["- [ ] 치과 예약 잡기", "  - 처음 하기로 한 날: 2026-10-06", "  - 하기로 한 날: 2026-10-18"]);
+    const task = find(result, "치과 예약 잡기");
+    expect([task.firstPlanned, task.planned, task.problems]).toEqual(["2026-10-06", "2026-10-18", []]);
   });
 
-  it("처음 계획한 날은 바뀌지 않는다", () => {
-    const result = okContent(addPlannedDate(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
-    expect(find(result, "치과 예약 잡기").plannedDates).toEqual(["2026-10-06", "2026-10-18"]);
+  it("이미 바꾼 적이 있으면 처음 날짜는 그대로 두고 하기로 한 날만 바꾼다", () => {
+    const result = okContent(changePlannedDate(BASE, PATH, target(BASE, "보고서 제출"), "2026-10-25"));
+    expect(block(result, "보고서 제출").slice(1, 3)).toEqual(["  - 처음 하기로 한 날: 2026-10-14", "  - 하기로 한 날: 2026-10-25"]);
+  });
+
+  it("앞선 날짜로도 바꿀 수 있다", () => {
+    const result = okContent(changePlannedDate(BASE, PATH, target(BASE, "보고서 제출"), "2026-10-01"));
+    const task = find(result, "보고서 제출");
+    expect([task.firstPlanned, task.planned, task.problems]).toEqual(["2026-10-14", "2026-10-01", []]);
   });
 
   it("다른 항목과 본문은 한 글자도 바꾸지 않는다", () => {
-    const result = okContent(addPlannedDate(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
+    const result = okContent(changePlannedDate(BASE, PATH, target(BASE, "치과 예약 잡기"), "2026-10-18"));
     expect(rest(result, "치과 예약 잡기")).toBe(rest(BASE, "치과 예약 잡기"));
   });
 
-  it("이미 있는 날짜는 더하지 않는다", () => {
-    const error = failure(addPlannedDate(BASE, PATH, target(BASE, "보고서 제출"), "2026-10-14"));
+  it("지금 하기로 한 날과 같은 날짜로는 바꾸지 않는다", () => {
+    const error = failure(changePlannedDate(BASE, PATH, target(BASE, "보고서 제출"), "2026-10-18"));
     expect(error.code).toBe("invalid");
-    expect(error.message).toContain("이미 계획한 날짜");
+    expect(error.message).toContain("이미 10/18");
   });
 
-  it("현재 계획 날짜보다 앞선 날짜는 더하지 않는다", () => {
-    const error = failure(addPlannedDate(BASE, PATH, target(BASE, "보고서 제출"), "2026-10-16"));
-    expect(error.code).toBe("invalid");
-    expect(error.message).toContain("10/18");
+  it("날짜 형식이 틀리면 바꾸지 않는다", () => {
+    expect(failure(changePlannedDate(BASE, PATH, target(BASE, "보고서 제출"), "내일")).code).toBe("invalid");
   });
 
-  it("날짜 형식이 틀리면 더하지 않는다", () => {
-    expect(failure(addPlannedDate(BASE, PATH, target(BASE, "보고서 제출"), "내일")).code).toBe("invalid");
-  });
-
-  it("끝난 항목에는 더하지 않는다", () => {
-    expect(failure(addPlannedDate(BASE, PATH, target(BASE, "끝난 일"), "2026-10-30")).code).toBe("readonly");
+  it("끝난 항목은 바꾸지 않는다", () => {
+    expect(failure(changePlannedDate(BASE, PATH, target(BASE, "끝난 일"), "2026-10-30")).code).toBe("readonly");
   });
 });
 
 describe("plannedDateError", () => {
-  const task = { plannedDates: ["2026-10-14", "2026-10-18"] };
-  it("뒤의 날짜만 통과시킨다", () => {
+  const task = { planned: "2026-10-18" };
+  it("지금 하기로 한 날과 같은 날짜와 틀린 형식만 막는다", () => {
     expect(plannedDateError(task, "2026-10-19")).toBeNull();
+    expect(plannedDateError(task, "2026-10-01")).toBeNull();
     expect(plannedDateError(task, "2026-10-18")).toContain("이미");
-    expect(plannedDateError(task, "2026-10-17")).toContain("10/18");
     expect(plannedDateError(task, "x")).toContain("형식");
   });
 });
@@ -259,7 +260,8 @@ describe("updateTask", () => {
     const result = okContent(updateTask(BASE, PATH, target(BASE, "보고서 제출"), { memo: "초안만 먼저" }));
     expect(block(result, "보고서 제출")).toEqual([
       "- [ ] 보고서 제출",
-      "  - 하기로 한 날: 2026-10-14, 2026-10-18",
+      "  - 처음 하기로 한 날: 2026-10-14",
+      "  - 하기로 한 날: 2026-10-18",
       "  - 마감일: 2026-10-17 18:00",
       "  - 분류: 공부",
       "  - 메모: 초안만 먼저",
@@ -314,7 +316,7 @@ describe("updateTask", () => {
   it("건드리지 않은 속성과 다른 항목은 그대로다", () => {
     const result = okContent(updateTask(BASE, PATH, target(BASE, "보고서 제출"), { memo: "초안만 먼저" }));
     expect(rest(result, "보고서 제출")).toBe(rest(BASE, "보고서 제출"));
-    expect(find(result, "보고서 제출").plannedDates).toEqual(["2026-10-14", "2026-10-18"]);
+    expect([find(result, "보고서 제출").firstPlanned, find(result, "보고서 제출").planned]).toEqual(["2026-10-14", "2026-10-18"]);
   });
 
   it("마지막 줄에 줄바꿈이 없는 파일에서 마지막 줄을 지워도 앞 줄이 온전하다", () => {

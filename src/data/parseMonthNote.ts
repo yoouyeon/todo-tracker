@@ -66,7 +66,8 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
     sourceText: content.slice(header.start, lastLine.end),
     title,
     status,
-    plannedDates: [],
+    firstPlanned: null,
+    planned: null,
     deadline: null,
     completedOn: null,
     cancelledOn: null,
@@ -79,7 +80,6 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
   };
 
   const seen = new Set<string>();
-  let plannedSeen = false;
   const singleDate = (key: string, value: string): string | null => {
     if (value === "") return null;
     if (isValidDate(value)) return value;
@@ -106,13 +106,12 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
 
     switch (key) {
       case FIELD.planned: {
-        plannedSeen = true;
-        for (const token of value.split(",").map((s) => s.trim()).filter(Boolean)) {
-          if (isValidDate(token)) task.plannedDates.push(token);
-          else problem("date", `${key} 형식 오류: ${token}`);
-        }
+        // 날짜를 쉼표로 이어 적던 예전 형식은 어느 날짜가 처음이고 어느 날짜가 지금인지 고쳐 적게 한다.
+        if (value.includes(",")) problem("planned", `${key}에 날짜가 여러 개 있음. 처음 날짜는 '${FIELD.firstPlanned}'에 따로 적어 주세요`);
+        else task.planned = singleDate(key, value);
         break;
       }
+      case FIELD.firstPlanned: task.firstPlanned = singleDate(key, value); break;
       case FIELD.completed: task.completedOn = singleDate(key, value); break;
       case FIELD.cancelled: task.cancelledOn = singleDate(key, value); break;
       case FIELD.reason: task.cancelReason = value || null; break;
@@ -129,11 +128,9 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
     }
   }
 
-  if (!plannedSeen || task.plannedDates.length === 0) {
-    if (!problems.some((p) => p.code === "plannedDates")) problem("plannedDates", `${FIELD.planned} 없음`);
-  } else if (task.plannedDates.some((d, i) => i > 0 && d <= (task.plannedDates[i - 1] ?? ""))) {
-    problem("plannedDates", `${FIELD.planned}의 날짜가 오래된 순서가 아니거나 겹침`);
-  }
+  if (task.planned === null && !problems.some((p) => p.code === "planned")) problem("planned", `${FIELD.planned} 없음`);
+  // 처음 날짜를 따로 적지 않았으면 한 번도 바꾸지 않은 것이므로 지금 날짜가 처음 날짜다.
+  if (!seen.has(FIELD.firstPlanned)) task.firstPlanned = task.planned;
 
   return task;
 }

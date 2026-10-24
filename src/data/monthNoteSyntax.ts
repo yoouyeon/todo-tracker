@@ -13,6 +13,7 @@ export const PROPERTY_RE = /^[ \t]+- ([^:]+?):[ \t]*(.*)$/;
 export const INDENTED_RE = /^[ \t]+\S/;
 
 export const FIELD = {
+  firstPlanned: "처음 하기로 한 날",
   planned: "하기로 한 날",
   deadline: "마감일",
   completed: "완료한 날",
@@ -27,6 +28,7 @@ export type FieldKey = (typeof FIELD)[keyof typeof FIELD];
 
 /** 새 속성 줄을 넣을 때 따르는 순서. 기존 노트의 순서와 같다. */
 export const FIELD_ORDER: readonly FieldKey[] = [
+  FIELD.firstPlanned,
   FIELD.planned,
   FIELD.deadline,
   FIELD.completed,

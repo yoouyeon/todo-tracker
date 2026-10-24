@@ -93,8 +93,8 @@ export function buildItems(monthNotes: ParsedMonthNote[], clock: Clock): TaskIte
   for (const monthNote of sorted) {
     for (const task of monthNote.tasks) {
       const valid = task.problems.length === 0;
-      const first = valid ? (task.plannedDates[0] ?? null) : null;
-      const current = valid ? (task.plannedDates[task.plannedDates.length - 1] ?? null) : null;
+      const first = valid ? task.firstPlanned : null;
+      const current = valid ? task.planned : null;
       const base = `${task.sourcePath}|${task.title}|${first ?? ""}`;
       const n = seen.get(base) ?? 0;
       seen.set(base, n + 1);

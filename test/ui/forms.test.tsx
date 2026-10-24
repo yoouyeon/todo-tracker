@@ -121,42 +121,36 @@ describe("DateForm", () => {
     expect(run).toHaveBeenCalledWith(TOMORROW);
   });
 
-  it("이미 계획한 날짜는 누를 수 없다", () => {
-    setup("보고서 초안 제출"); // 계획 날짜 10/14, 10/18
+  it("지금 하기로 한 날과 같은 날짜는 누를 수 없다", () => {
+    setup("보고서 초안 제출"); // 하기로 한 날 10/18
     expect((button("오늘 10/18") as HTMLButtonElement).disabled).toBe(true);
     expect((button("내일 10/19") as HTMLButtonElement).disabled).toBe(false);
   });
 
-  it("현재 계획 날짜보다 앞선 날짜는 누를 수 없다", () => {
-    setup("부모님 선물 주문"); // 현재 계획 날짜 10/22
-    expect((button("오늘 10/18") as HTMLButtonElement).disabled).toBe(true);
-    expect((button("내일 10/19") as HTMLButtonElement).disabled).toBe(true);
-  });
-
-  it("다른 날짜의 기본값과 가장 이른 날짜를 현재 계획 날짜 뒤로 맞춘다", () => {
-    setup("부모님 선물 주문");
-    const input = screen.getByLabelText("다른 날짜") as HTMLInputElement;
-    expect(input.min).toBe("2026-10-23");
-    expect(input.value).toBe("2026-10-23");
+  it("앞선 날짜로도 당길 수 있다", () => {
+    setup("부모님 선물 주문"); // 하기로 한 날 10/22
+    expect((button("오늘 10/18") as HTMLButtonElement).disabled).toBe(false);
+    expect((button("내일 10/19") as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByLabelText("다른 날짜") as HTMLInputElement).min).toBe("");
   });
 
   it("다른 날짜를 골라 저장한다", async () => {
     const { run, onSuccess } = setup("여행 사진 정리");
     expect((screen.getByLabelText("다른 날짜") as HTMLInputElement).value).toBe("2026-10-20");
     fireEvent.change(screen.getByLabelText("다른 날짜"), { target: { value: "2026-10-25" } });
-    fireEvent.click(button("추가"));
+    fireEvent.click(button("바꾸기"));
     await waitFor(() => expect(onSuccess).toHaveBeenCalled());
     expect(run).toHaveBeenCalledWith("2026-10-25");
   });
 
-  it("기존 날짜를 그대로 둔다고 알려 준다", () => {
+  it("지금 하기로 한 날과 처음 날짜는 바뀌지 않는다는 것을 알려 준다", () => {
     setup("보고서 초안 제출");
-    expect(screen.getByText(/기존 날짜 10\/14, 10\/18는 그대로 두고/)).toBeTruthy();
+    expect(screen.getByText(/지금은 10\/18에 하기로 했어요. 처음 하기로 한 날은 바뀌지 않아요/)).toBeTruthy();
   });
 
   it("규칙에 어긋나서 실패하면 이유를 보여 주고 닫지 않는다", async () => {
-    const { onSuccess } = setup("여행 사진 정리", failRun<[string]>("현재 계획 날짜(10/12)보다 뒤의 날짜만 추가할 수 있어요."));
-    fireEvent.click(button("추가"));
+    const { onSuccess } = setup("여행 사진 정리", failRun<[string]>("이미 10/12에 하기로 했어요."));
+    fireEvent.click(button("바꾸기"));
     expect((await screen.findByRole("alert")).textContent).toContain("10/12");
     expect(onSuccess).not.toHaveBeenCalled();
   });
@@ -223,7 +217,7 @@ describe("EditForm", () => {
 describe("NewTaskForm", () => {
   const setup = (overrides: { onCreate?: ReturnType<typeof okRun<[import("../../src/data/editMonthNote").NewTaskInput]>> } = {}) => {
     const onCreate = overrides.onCreate ?? okRun<[import("../../src/data/editMonthNote").NewTaskInput]>();
-    const onAddDate = okRun<[import("../../src/data/types").TaskRecord, string]>();
+    const onChangeDate = okRun<[import("../../src/data/types").TaskRecord, string]>();
     const onSuccess = vi.fn();
     const onCancel = vi.fn();
     render(
@@ -232,12 +226,12 @@ describe("NewTaskForm", () => {
         categories={["개인", "공부"]}
         findDuplicates={(title) => findOpenDuplicates(loaded.monthNotes, title)}
         onCreate={onCreate}
-        onAddDate={onAddDate}
+        onChangeDate={onChangeDate}
         onSuccess={onSuccess}
         onCancel={onCancel}
       />,
     );
-    return { onCreate, onAddDate, onSuccess, onCancel };
+    return { onCreate, onChangeDate, onSuccess, onCancel };
   };
   const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
   const submit = () => fireEvent.click(button("추가"));
@@ -257,7 +251,7 @@ describe("NewTaskForm", () => {
   });
 
   it("같은 제목이 없으면 입력한 값으로 바로 만들고 닫는다", async () => {
-    const { onCreate, onAddDate, onSuccess } = setup();
+    const { onCreate, onChangeDate, onSuccess } = setup();
     type("제목", "완전히 새로운 일");
     type("분류", "공부");
     type("메모", "첫 메모");
@@ -272,7 +266,7 @@ describe("NewTaskForm", () => {
       memo: "첫 메모",
       deadline: { date: "2026-10-30", time: "09:00" },
     });
-    expect(onAddDate).not.toHaveBeenCalled();
+    expect(onChangeDate).not.toHaveBeenCalled();
   });
 
   it("마감 시각만 입력하면 요청하지 않고 알린다", async () => {
@@ -294,40 +288,40 @@ describe("NewTaskForm", () => {
     };
 
     it("자동으로 합치거나 만들지 않고 먼저 고르게 한다", async () => {
-      const { onCreate, onAddDate, onSuccess } = await askAboutDuplicate();
+      const { onCreate, onChangeDate, onSuccess } = await askAboutDuplicate();
       expect(onCreate).not.toHaveBeenCalled();
-      expect(onAddDate).not.toHaveBeenCalled();
+      expect(onChangeDate).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();
       const radios = screen.getAllByRole("radio");
       expect(radios).toHaveLength(2);
-      expect(screen.getByText(/기존 항목에 10\/18 추가 \(할일\/2026-10\.md · 처음 10\/17\)/)).toBeTruthy();
+      expect(screen.getByText(/기존 항목을 10\/18에 하기로 바꾸기 \(할일\/2026-10\.md · 처음 10\/17\)/)).toBeTruthy();
       expect(screen.getByText("새 항목으로 만들기 (2026-10.md)")).toBeTruthy();
     });
 
     it("고르지 않고 다시 저장하면 어느 쪽도 하지 않고 고르라고 알린다", async () => {
-      const { onCreate, onAddDate } = await askAboutDuplicate();
+      const { onCreate, onChangeDate } = await askAboutDuplicate();
       submit();
       expect((await screen.findByRole("alert")).textContent).toContain("골라 주세요");
       expect(onCreate).not.toHaveBeenCalled();
-      expect(onAddDate).not.toHaveBeenCalled();
+      expect(onChangeDate).not.toHaveBeenCalled();
     });
 
-    it("기존 항목을 고르면 그 항목에 입력한 날짜를 더한다", async () => {
-      const { onCreate, onAddDate, onSuccess } = await askAboutDuplicate();
+    it("기존 항목을 고르면 그 항목의 하기로 한 날을 입력한 날짜로 바꾼다", async () => {
+      const { onCreate, onChangeDate, onSuccess } = await askAboutDuplicate();
       fireEvent.click(screen.getAllByRole("radio")[0] as HTMLElement);
       submit();
       await waitFor(() => expect(onSuccess).toHaveBeenCalled());
-      expect(onAddDate).toHaveBeenCalledWith(expect.objectContaining({ title: "알고리즘 2문제", status: "open" }), TODAY);
+      expect(onChangeDate).toHaveBeenCalledWith(expect.objectContaining({ title: "알고리즘 2문제", status: "open" }), TODAY);
       expect(onCreate).not.toHaveBeenCalled();
     });
 
     it("새 항목으로 만들기를 고르면 새로 만든다", async () => {
-      const { onCreate, onAddDate, onSuccess } = await askAboutDuplicate();
+      const { onCreate, onChangeDate, onSuccess } = await askAboutDuplicate();
       fireEvent.click(screen.getAllByRole("radio")[1] as HTMLElement);
       submit();
       await waitFor(() => expect(onSuccess).toHaveBeenCalled());
       expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ title: "알고리즘 2문제", date: TODAY }));
-      expect(onAddDate).not.toHaveBeenCalled();
+      expect(onChangeDate).not.toHaveBeenCalled();
     });
 
     it("제목을 바꾸면 고르던 것을 처음부터 다시 확인한다", async () => {

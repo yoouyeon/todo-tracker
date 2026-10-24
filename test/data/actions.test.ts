@@ -90,12 +90,13 @@ describe("TaskActions: 기존 항목 고치기", () => {
     expect(writer.files.get("할일/2026-10.md")).toBe(edited);
   });
 
-  it("취소, 날짜 추가, 상세 편집도 같은 경로로 쓴다", async () => {
+  it("취소, 날짜 바꾸기, 상세 편집도 같은 경로로 쓴다", async () => {
     const { writer, actions } = setup();
     const path = "할일/2026-10.md";
 
-    expect((await actions.addDate(taskOf(writer, path, "보고서 제출"), "2026-10-18")).ok).toBe(true);
-    expect(taskOf(writer, path, "보고서 제출").plannedDates).toEqual(["2026-10-14", "2026-10-18"]);
+    expect((await actions.changeDate(taskOf(writer, path, "보고서 제출"), "2026-10-18")).ok).toBe(true);
+    const moved = taskOf(writer, path, "보고서 제출");
+    expect([moved.firstPlanned, moved.planned]).toEqual(["2026-10-14", "2026-10-18"]);
 
     expect((await actions.update(taskOf(writer, path, "보고서 제출"), { category: "공부", memo: "초안만" })).ok).toBe(true);
     const updated = taskOf(writer, path, "보고서 제출");
@@ -108,8 +109,8 @@ describe("TaskActions: 기존 항목 고치기", () => {
   it("편집 규칙에 어긋나는 요청은 쓰지 않고 이유를 돌려준다", async () => {
     const { writer, actions } = setup();
     const task = taskOf(writer, "할일/2026-10.md", "보고서 제출");
-    const result = await actions.addDate(task, "2026-10-10");
-    expect(result.ok === false && result.message).toContain("10/14");
+    const result = await actions.changeDate(task, "2026-10-14");
+    expect(result.ok === false && result.message).toContain("이미 10/14");
     const noReason = await actions.cancel(task, "2026-10-18", "   ");
     expect(noReason.ok === false && noReason.message).toContain("이유");
     expect(writer.writes).toEqual([]);
@@ -155,7 +156,7 @@ describe("TaskActions.addTask", () => {
     const { writer, actions } = setup();
     await actions.addTask({ title: "월말 일", date: "2026-10-31" });
     expect(writer.files.has("할일/2026-11.md")).toBe(false);
-    expect(taskOf(writer, "할일/2026-10.md", "월말 일").plannedDates).toEqual(["2026-10-31"]);
+    expect(taskOf(writer, "할일/2026-10.md", "월말 일").planned).toBe("2026-10-31");
   });
 
   it("설정 폴더를 정리해서 경로를 만든다", async () => {

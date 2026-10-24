@@ -69,7 +69,7 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
           categories={categories()}
           findDuplicates={(title) => findOpenDuplicates(store.getSnapshot().monthNotes, title)}
           onCreate={(input) => notifyOnSuccess(() => actions.addTask(input), T.notice.created(monthNoteFileName(input.date)))}
-          onAddDate={(task, date) => notifyOnSuccess(() => actions.addDate(task, date), T.notice.dateAdded(task.title, formatMonthDay(date)))}
+          onChangeDate={(task, date) => notifyOnSuccess(() => actions.changeDate(task, date), T.notice.dateChanged(task.title, formatMonthDay(date)))}
           onSuccess={close}
           onCancel={close}
         />
@@ -107,7 +107,7 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
         <DateForm
           task={task}
           today={today}
-          run={(date) => notifyOnSuccess(() => actions.addDate(task, date), T.notice.dateAdded(task.title, formatMonthDay(date)))}
+          run={(date) => notifyOnSuccess(() => actions.changeDate(task, date), T.notice.dateChanged(task.title, formatMonthDay(date)))}
           onSuccess={close}
           onCancel={close}
           onOpenNote={() => open(task)}
@@ -144,7 +144,7 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
               .setIcon(day.icon)
               // 이미 계획한 날짜와 현재 계획 날짜보다 앞선 날짜는 더할 수 없다.
               .setDisabled(plannedDateError(task, day.date) !== null)
-              .onClick(() => void quick(task, () => actions.addDate(task, day.date), T.notice.dateAdded(task.title, formatMonthDay(day.date)))),
+              .onClick(() => void quick(task, () => actions.changeDate(task, day.date), T.notice.dateChanged(task.title, formatMonthDay(day.date)))),
           );
         }
         menu.addItem((item) => item.setTitle(T.menu.pickDate).setIcon("calendar").onClick(() => host.pickDate(task, today)));

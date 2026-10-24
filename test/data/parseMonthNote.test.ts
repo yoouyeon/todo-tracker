@@ -50,9 +50,14 @@ describe("parseMonthNote: 기본 형식", () => {
     expect(only(monthNote.tasks, "여행 사진 정리").status).toBe("open");
   });
 
-  it("계획 날짜 이력을 오래된 순서 그대로 읽는다", () => {
-    expect(only(monthNote.tasks, "여행 사진 정리").plannedDates).toEqual(["2026-10-09", "2026-10-12"]);
-    expect(only(monthNote.tasks, "보고서 초안 제출").plannedDates).toEqual(["2026-10-14", "2026-10-18"]);
+  it("처음 하기로 한 날과 지금 하기로 한 날을 읽는다", () => {
+    const travel = only(monthNote.tasks, "여행 사진 정리");
+    expect([travel.firstPlanned, travel.planned]).toEqual(["2026-10-09", "2026-10-12"]);
+  });
+
+  it("처음 하기로 한 날이 없으면 하기로 한 날을 처음 날짜로 본다", () => {
+    const stretch = only(monthNote.tasks, "아침 스트레칭");
+    expect([stretch.firstPlanned, stretch.planned]).toEqual(["2026-10-18", "2026-10-18"]);
   });
 
   it("완료·취소 날짜와 이유를 읽는다", () => {
@@ -87,8 +92,8 @@ describe("parseMonthNote: 같은 이름과 다른 이름", () => {
   it("같은 이름의 항목을 합치지 않고 따로 둔다", () => {
     const same = byTitle(monthNote.tasks, "알고리즘 2문제");
     expect(same.map((t) => t.status)).toEqual(["open", "done"]);
-    expect(same[0]?.plannedDates).toEqual(["2026-10-17", "2026-10-18"]);
-    expect(same[1]?.plannedDates).toEqual(["2026-10-10"]);
+    expect([same[0]?.firstPlanned, same[0]?.planned]).toEqual(["2026-10-17", "2026-10-18"]);
+    expect([same[1]?.firstPlanned, same[1]?.planned]).toEqual(["2026-10-10", "2026-10-10"]);
   });
 
   it("다른 이름은 쉼표가 들어 있어도 쪼개지 않고 원문 그대로 둔다", () => {
@@ -152,7 +157,7 @@ describe("parseMonthNote: 모르는 속성 보존", () => {
 
   it("알려진 속성은 모르는 줄과 상관없이 읽는다", () => {
     expect(task.category).toBe("공부");
-    expect(task.plannedDates).toEqual(["2026-10-19"]);
+    expect(task.planned).toBe("2026-10-19");
   });
 });
 
@@ -161,9 +166,9 @@ describe("parseMonthNote: 잘못된 항목", () => {
 
   it("형식이 틀려도 항목을 숨기지 않고 문제를 기록한다", () => {
     const task = only(monthNote.tasks, "형식이 틀린 날짜");
-    expect(task.plannedDates).toEqual([]);
+    expect([task.firstPlanned, task.planned]).toEqual([null, null]);
     expect(task.deadline).toBeNull();
-    expect(codes(task)).toEqual(["date", "date", "date", "plannedDates"]);
+    expect(codes(task)).toEqual(["date", "date", "date", "planned"]);
     expect(task.problems[0]?.message).toContain("10/24");
     expect(task.problems[1]?.message).toContain("2026-02-30");
   });
@@ -172,12 +177,12 @@ describe("parseMonthNote: 잘못된 항목", () => {
     const task = only(monthNote.tasks, "알 수 없는 기호");
     expect(codes(task)).toEqual(["checkbox"]);
     expect(task.status).toBe("open");
-    expect(task.plannedDates).toEqual(["2026-10-20"]);
+    expect(task.planned).toBe("2026-10-20");
   });
 
   it("하기로 한 날이 없으면 문제로 기록한다", () => {
     const task = only(monthNote.tasks, "하기로 한 날이 없는 항목");
-    expect(codes(task)).toEqual(["plannedDates"]);
+    expect(codes(task)).toEqual(["planned"]);
     expect(task.problems[0]?.message).toBe("하기로 한 날 없음");
   });
 
@@ -191,14 +196,15 @@ describe("parseMonthNote: 잘못된 항목", () => {
 describe("parseMonthNote: 계획 날짜 검증", () => {
   const parse = (body: string) => parseMonthNote("할일/2026-10.md", `---\n월: 2026-10\n미완료: true\n---\n\n${body}\n`).tasks;
 
-  it("날짜가 오래된 순서가 아니면 문제로 기록한다", () => {
-    const [task] = parse("- [ ] 순서 뒤바뀜\n  - 하기로 한 날: 2026-10-12, 2026-10-05");
-    expect(codes(task as TaskRecord)).toEqual(["plannedDates"]);
+  it("하기로 한 날에 날짜가 여러 개면(예전 형식) 문제로 기록한다", () => {
+    const [task] = parse("- [ ] 예전 형식\n  - 하기로 한 날: 2026-10-05, 2026-10-12");
+    expect(codes(task as TaskRecord)).toEqual(["planned"]);
+    expect(task?.problems[0]?.message).toContain("처음 하기로 한 날");
   });
 
-  it("같은 날짜가 겹치면 문제로 기록한다", () => {
-    const [task] = parse("- [ ] 날짜 중복\n  - 하기로 한 날: 2026-10-05, 2026-10-05");
-    expect(codes(task as TaskRecord)).toEqual(["plannedDates"]);
+  it("하기로 한 날이 처음 날짜보다 앞서도 문제가 아니다", () => {
+    const [task] = parse("- [ ] 앞당김\n  - 처음 하기로 한 날: 2026-10-12\n  - 하기로 한 날: 2026-10-05");
+    expect([task?.firstPlanned, task?.planned, task?.problems]).toEqual(["2026-10-12", "2026-10-05", []]);
   });
 
   it("같은 속성이 두 번 나오면 첫 값을 쓰고 문제로 기록한다", () => {
@@ -259,10 +265,10 @@ describe("parseMonthNote: 파일 단위 문제", () => {
 describe("parseMonthNote: 지난달 파일", () => {
   const monthNote = parseMonthNote("할일/2026-09.md", SEP);
 
-  it("지난달 파일에 남은 진행 중 항목의 이력은 다음 달 날짜까지 이어진다", () => {
+  it("지난달 파일에 남은 진행 중 항목은 다음 달 날짜로 바꿔도 그 파일에 있다", () => {
     const task = only(monthNote.tasks, "겨울옷 꺼내기");
     expect(task.status).toBe("open");
-    expect(task.plannedDates).toEqual(["2026-09-28", "2026-10-05"]);
+    expect([task.firstPlanned, task.planned]).toEqual(["2026-09-28", "2026-10-05"]);
     expect(task.sourcePath).toBe("할일/2026-09.md");
     expect(monthNote.issues).toEqual([]);
   });
