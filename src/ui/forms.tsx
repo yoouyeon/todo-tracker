@@ -1,10 +1,11 @@
 import { Platform } from "obsidian";
-import { useId, useRef, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import type { ActionResult } from "../data/actions";
 import { plannedDateError, type NewTaskInput, type TaskPatch } from "../data/editMonthNote";
 import type { TaskRecord } from "../data/types";
 import { addDays } from "../logic/dates";
 import { formatMonthDay, monthNoteFileName } from "../logic/format";
+import { Icon } from "./Icon";
 import { nextNewTaskStep } from "./newTaskFlow";
 import { T } from "./strings";
 
@@ -15,6 +16,16 @@ const failed = (message: string): ActionResult => ({ ok: false, message });
 
 /** 모바일에서는 창을 열 때 글자 칸에 포커스를 주면 키보드가 올라와 나머지 칸과 버튼을 가리므로 주지 않는다. */
 const focusTextOnOpen = !Platform.isMobile;
+
+/** 날짜·시각 칸. 안드로이드는 기본 화살표를 테두리에 바짝 붙여 그리므로, CSS로 그 화살표를 숨기고 이 아이콘을 대신 보여 준다. */
+function PickerInput(props: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <span className="tt-picker">
+      <input {...props} />
+      <Icon name="chevron-down" />
+    </span>
+  );
+}
 
 /** 저장 요청, 오류 표시, 중복 제출 방지를 맡는다. 성공하면 `onSuccess`로 입력창을 닫는다. */
 function useSubmit(onSuccess: () => void) {
@@ -110,7 +121,7 @@ export function CompleteForm({ task, today, run, onSuccess, onCancel, onOpenNote
     >
       <label className="tt-field">
         <span>{T.form.completedOn}</span>
-        <input type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
+        <PickerInput type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
       <p className="tt-help">{T.form.completeHelp(task.sourcePath)}</p>
     </FormFrame>
@@ -133,7 +144,7 @@ export function CompletedDateForm({ task, run, onSuccess, onCancel, onOpenNote }
     >
       <label className="tt-field">
         <span>{T.form.completedOn}</span>
-        <input type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
+        <PickerInput type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
       {task.completedOn && <p className="tt-help">{T.form.completedDateHelp(formatMonthDay(task.completedOn))}</p>}
     </FormFrame>
@@ -158,7 +169,7 @@ export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }
     >
       <label className="tt-field">
         <span>{T.form.cancelledOn}</span>
-        <input type="date" value={date} required onChange={(e) => setDate(e.target.value)} />
+        <PickerInput type="date" value={date} required onChange={(e) => setDate(e.target.value)} />
       </label>
       <label className="tt-field">
         <span>{T.form.reason}</span>
@@ -186,7 +197,7 @@ export function CancellationForm({ task, run, onSuccess, onCancel, onOpenNote }:
     >
       <label className="tt-field">
         <span>{T.form.cancelledOn}</span>
-        <input type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
+        <PickerInput type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
       <label className="tt-field">
         <span>{T.form.reason}</span>
@@ -225,7 +236,7 @@ export function DateForm({ task, today, run, onSuccess, onCancel, onOpenNote }: 
       </div>
       <label className="tt-field">
         <span>{T.form.otherDate}</span>
-        <input type="date" value={date} autoFocus onChange={(e) => setDate(e.target.value)} />
+        <PickerInput type="date" value={date} autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
       {task.planned && <p className="tt-help">{T.form.dateHelp(formatMonthDay(task.planned))}</p>}
     </FormFrame>
@@ -254,8 +265,8 @@ export function EditForm({ task, categories, run, onSuccess, onCancel, onOpenNot
       <div className="tt-field">
         <span>{T.form.deadline}</span>
         <div className="tt-field-row">
-          <input type="date" aria-label={T.form.deadline} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} />
-          <input type="time" aria-label={T.form.deadlineTime} value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} />
+          <PickerInput type="date" aria-label={T.form.deadline} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} />
+          <PickerInput type="time" aria-label={T.form.deadlineTime} value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} />
         </div>
       </div>
       <label className="tt-field">
@@ -349,7 +360,7 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
       </label>
       <label className="tt-field">
         <span>{T.form.firstDate}</span>
-        <input type="date" value={date} required onChange={(e) => setDate(e.target.value)} />
+        <PickerInput type="date" value={date} required onChange={(e) => setDate(e.target.value)} />
       </label>
       <label className="tt-field">
         <span>{T.form.category}</span>
@@ -363,8 +374,8 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
       <div className="tt-field">
         <span>{T.form.deadline}</span>
         <div className="tt-field-row">
-          <input type="date" aria-label={T.form.deadline} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} />
-          <input type="time" aria-label={T.form.deadlineTime} value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} />
+          <PickerInput type="date" aria-label={T.form.deadline} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} />
+          <PickerInput type="time" aria-label={T.form.deadlineTime} value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} />
         </div>
       </div>
       <label className="tt-field">

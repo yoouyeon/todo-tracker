@@ -29,6 +29,41 @@
   grid-template-columns: minmax(0, 1fr) 120px;
   gap: var(--size-4-2);
 }
+/* 날짜·시각 칸을 감싸는 틀. 감싸기 전처럼 다른 입력칸과 같은 폭을 차지한다. */
+.tt-picker {
+  position: relative;
+  display: flex;
+}
+/* 안드로이드의 날짜·시각 칸은 기본 최소 폭이 넓어서 칸을 넘치므로 줄일 수 있게 한다. */
+.tt-picker > input {
+  flex: 1;
+  min-width: 0;
+}
+.tt-field-row > .tt-picker {
+  min-width: 0;
+}
+.tt-picker > .tt-icon {
+  display: none;
+}
+/* 안드로이드는 기본 화살표를 테두리에 바짝 붙여 그리고 칸 높이도 다른 입력칸보다 낮아서, 기본 화살표를 숨기고 높이를 맞춘다. */
+.is-android .tt-picker > input {
+  appearance: none;
+  height: var(--input-height);
+  padding-inline-end: calc(var(--size-4-3) + var(--icon-s) + var(--size-4-2));
+}
+.is-android .tt-picker > .tt-icon {
+  display: inline-flex;
+  position: absolute;
+  inset-inline-end: var(--size-4-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+/* 폰에서는 한 줄에 둘 폭이 모자라 날짜와 시각을 위아래로 나눈다. */
+.is-phone .tt-field-row {
+  grid-template-columns: minmax(0, 1fr);
+}
 /* 옵시디언 기본 CSS는 날짜 칸만 꾸미고 시각 칸은 꾸미지 않아서, 날짜 칸과 같은 변수로 맞춘다. */
 .tt-form input[type="time"] {
   background: var(--background-modifier-form-field);
