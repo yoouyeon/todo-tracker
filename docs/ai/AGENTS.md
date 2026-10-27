@@ -1,58 +1,60 @@
-# Todo Tracker 월 노트
+# Todo Tracker month notes
 
-이 폴더의 할 일은 Obsidian 플러그인 Todo Tracker로 관리합니다. 이 폴더의 월 노트를 읽거나 고칠 때 아래 규칙을 따릅니다. 플러그인이 이 형식을 그대로 읽고 쓰므로, 형식이 어긋나면 화면에 항목이 보이지 않거나 `확인이 필요한 항목`으로 빠집니다.
+The todos in this folder are managed by the Obsidian plugin Todo Tracker. Follow the rules below when you read or edit the month notes in this folder. The plugin reads and writes this format as is, so a todo in the wrong format is not shown, or ends up under `Needs attention`.
 
-## 파일
+## Files
 
-- 이 폴더 바로 아래의 `YYYY-MM.md` 파일만 월 노트입니다. 하위 폴더나 다른 이름의 파일(이 파일 포함)은 플러그인이 읽지 않습니다.
-- 할 일은 **처음 하기로 한 날이 속한 달**의 파일에 둡니다. 날짜를 다른 달로 미뤄도 항목을 다른 파일로 옮기지 않습니다.
-- 새 월 노트는 아래 frontmatter로 시작합니다. `월`은 파일 이름과 같게 씁니다.
+- Only `YYYY-MM.md` files directly in this folder are month notes. The plugin doesn't read subfolders or files with other names (including this one).
+- Put a todo in the file of **the month it was first planned**. When you move its date to another month, don't move the todo to another file.
+- A new month note starts with this frontmatter. `month` matches the file name.
 
 ```markdown
 ---
-월: 2026-10
-미완료: true
+month: 2026-10
+open: true
 ---
 ```
 
-- `미완료`는 그 파일에 진행 중(`[ ]`) 항목이 하나라도 있으면 `true`, 없으면 `false`입니다. 항목 상태를 바꿨으면 이 값도 맞춥니다.
+- `open` is `true` if the file has at least one open (`[ ]`) todo, and `false` otherwise. Update it when you change the status of a todo.
 
-## 항목
+## Todos
 
 ```markdown
-- [ ] 보고서 초안 제출
-  - 처음 하기로 한 날: 2026-10-14
-  - 하기로 한 날: 2026-10-18
-  - 마감일: 2026-10-17 18:00
-  - 분류: 공부
-  - 메모: 초안만 먼저
+- [ ] Submit the report draft
+  - first planned: 2026-10-14
+  - planned: 2026-10-18
+  - deadline: 2026-10-17 18:00
+  - category: study
+  - memo: draft only
 ```
 
-- 항목은 들여쓰기 없는 `- [ ] 제목` 줄로 시작합니다. `*`, `1.` 같은 다른 목록 기호는 읽지 않습니다.
-- 체크박스는 `[ ]` 진행 중, `[x]` 완료, `[-]` 취소 세 가지만 씁니다.
-- 속성은 제목 아래에 같은 깊이로 들여쓴 `- 이름: 값` 줄입니다. 한 속성은 한 번만 씁니다.
-- 날짜는 `YYYY-MM-DD`, 마감 시각은 `YYYY-MM-DD HH:mm`입니다.
-- 속성 순서는 `처음 하기로 한 날`, `하기로 한 날`, `마감일`, `완료한 날`, `취소한 날`, `이유`, `분류`, `다른 이름`, `메모`입니다.
+- A todo starts with an unindented `- [ ] title` line. Other list markers such as `*` or `1.` are not read.
+- Use only three checkboxes: `[ ]` open, `[x]` done, `[-]` cancelled.
+- Fields are `- name: value` lines under the title, all indented to the same depth. Write each field only once.
+- Dates are `YYYY-MM-DD`. A deadline with a time is `YYYY-MM-DD HH:mm`.
+- Field names are lowercase, in this order: `first planned`, `planned`, `deadline`, `completed`, `cancelled`, `reason`, `category`, `alias`, `memo`.
 
-| 속성 | 뜻 |
+| Field | Meaning |
 |---|---|
-| `처음 하기로 한 날` | 처음 계획한 날짜. 없으면 `하기로 한 날`과 같다고 봅니다. |
-| `하기로 한 날` (필수) | 지금 하기로 한 날짜. 날짜는 하나만 씁니다. |
-| `마감일` | 날짜 또는 날짜와 시각 |
-| `완료한 날` | `[x]` 항목에 씁니다. |
-| `취소한 날`, `이유` | `[-]` 항목에 씁니다. `이유`는 선택입니다. |
-| `분류` | 필터에 쓰는 분류 |
-| `다른 이름` | 검색에 함께 쓰는 이름 |
-| `메모` | 자유 메모 |
+| `first planned` | The date first planned. If missing, it is the same as `planned`. |
+| `planned` (required) | The date currently planned. Write only one date. |
+| `deadline` | A date, or a date and time |
+| `completed` | For `[x]` todos. |
+| `cancelled`, `reason` | For `[-]` todos. `reason` is optional. |
+| `category` | Used for filtering |
+| `alias` | Other names used in search |
+| `memo` | Free-form memo |
 
-표에 없는 속성은 쓰지 않습니다. 모르는 속성이 있는 항목은 플러그인이 `확인이 필요한 항목`으로 따로 모읍니다.
+The plugin also reads Korean field names (`하기로 한 날` and so on), but this folder uses the English names above. Don't mix the two languages within a todo.
 
-## 자주 하는 일
+Don't write fields that are not in the table. The plugin lists todos with unknown fields separately under `Needs attention`.
 
-- **새 할 일 추가**: `하기로 한 날`이 속한 달의 파일에 넣습니다. 파일이 없으면 위 frontmatter로 새로 만듭니다.
-- **날짜 미루기**: `하기로 한 날`만 바꿉니다. `처음 하기로 한 날`이 없으면 바꾸기 전 날짜로 먼저 추가합니다. 플러그인은 이 날짜로 얼마나 밀렸는지 셉니다.
-- **완료**: `[ ]`를 `[x]`로 바꾸고 `완료한 날`을 추가합니다.
-- **취소**: `[ ]`를 `[-]`로 바꾸고 `취소한 날`을 추가합니다. 이유가 있으면 `이유`도 씁니다.
-- **되돌리기**: 체크박스를 `[ ]`로 바꾸고 `완료한 날` 또는 `취소한 날`과 `이유`를 지웁니다.
+## Common tasks
 
-항목 사이의 `<!-- 진행 중 -->` 같은 주석과 제목은 플러그인이 읽지 않으니 그대로 두면 됩니다.
+- **Add a todo**: Put it in the file of the month of its `planned` date. If the file doesn't exist, create it with the frontmatter above.
+- **Postpone**: Change only `planned`. If there is no `first planned`, add it first with the date before the change. The plugin uses it to count how long the todo has been postponed.
+- **Complete**: Change `[ ]` to `[x]` and add `completed`.
+- **Cancel**: Change `[ ]` to `[-]` and add `cancelled`. Add `reason` if there is one.
+- **Undo**: Change the checkbox back to `[ ]` and remove `completed`, or `cancelled` and `reason`.
+
+The plugin doesn't read comments such as `<!-- Open -->` or headings between todos, so leave them as they are.
