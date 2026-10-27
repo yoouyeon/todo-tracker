@@ -1,10 +1,24 @@
 # Todo Tracker
 
-> Track monthly Markdown todo notes in Obsidian: overdue, today and upcoming at a glance. The UI and the note format are Korean only.
+> Track monthly Markdown todo notes in Obsidian: overdue, today and upcoming at a glance. The UI and the note format currently support Korean only.
 
 월별 Markdown 노트에 적은 할 일을 지난 계획, 오늘, 예정으로 나눠 보여 줍니다. 화면에서 완료하거나 날짜를 바꾸면 노트에 바로 반영되고, 노트를 직접 고쳐도 화면에 바로 반영됩니다.
 
 ![할 일 화면](docs/images/overview.png)
+
+## In English
+
+Todo Tracker shows the tasks in your monthly Markdown notes, grouped into overdue, today and upcoming. Changes you make in the view are written back to the note right away, and edits to the note show up in the view.
+
+**The plugin UI and the note format currently support Korean only.** Field names such as `하기로 한 날` (planned date) are in Korean for now, so the plugin is mainly useful if you read Korean.
+
+- Reads `YYYY-MM.md` notes in a folder you choose (default `할일`). Each task is a checklist item with indented `- field: value` lines.
+- Flags tasks postponed for 7 days or more, and tasks with a passed or upcoming deadline.
+- Complete, reschedule, edit or cancel tasks from the view, and undo them.
+- Filter by deadline, category or text.
+- Works on desktop and mobile.
+
+Open it from the ribbon icon or the command `Todo Tracker: 할 일 열기` (Open todos). The sections below describe the note format in Korean.
 
 ## Features
 
