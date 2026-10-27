@@ -1,7 +1,7 @@
 {
   "id": "todo-tracker",
   "name": "Todo Tracker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "1.13.0",
   "description": "Track monthly Markdown todo notes: overdue, today and upcoming at a glance. Korean UI and note format only.",
   "author": "yoouyeon",
