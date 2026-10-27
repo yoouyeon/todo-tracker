@@ -23,7 +23,10 @@ export default class TodoTrackerPlugin extends Plugin {
           const dir = folder === "" ? this.app.vault.getRoot() : this.app.vault.getFolderByPath(folder);
           return dir ? dir.children.filter((file): file is TFile => file instanceof TFile) : [];
         },
-        read: (file) => this.app.vault.read(file as TFile),
+        read: (file) => {
+          if (!(file instanceof TFile)) return Promise.reject(new Error(`파일이 아님: ${file.path}`));
+          return this.app.vault.read(file);
+        },
       },
       () => this.settings.folder,
     );
@@ -47,7 +50,9 @@ export default class TodoTrackerPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = { ...DEFAULT_SETTINGS, ...(await this.loadData()) };
+    const data: unknown = await this.loadData();
+    const saved = typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {};
+    this.settings = { folder: typeof saved.folder === "string" ? saved.folder : DEFAULT_SETTINGS.folder };
   }
 
   async saveSettings(): Promise<void> {
