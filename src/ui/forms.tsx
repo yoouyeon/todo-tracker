@@ -1,3 +1,4 @@
+import { Platform } from "obsidian";
 import { useId, useRef, useState, type ReactNode } from "react";
 import type { ActionResult } from "../data/actions";
 import { plannedDateError, type NewTaskInput, type TaskPatch } from "../data/editMonthNote";
@@ -11,6 +12,9 @@ import { T } from "./strings";
 type Outcome = ActionResult | "pending";
 
 const failed = (message: string): ActionResult => ({ ok: false, message });
+
+/** 모바일에서는 창을 열 때 글자 칸에 포커스를 주면 키보드가 올라와 나머지 칸과 버튼을 가리므로 주지 않는다. */
+const focusTextOnOpen = !Platform.isMobile;
 
 /** 저장 요청, 오류 표시, 중복 제출 방지를 맡는다. 성공하면 `onSuccess`로 입력창을 닫는다. */
 function useSubmit(onSuccess: () => void) {
@@ -158,7 +162,7 @@ export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }
       </label>
       <label className="tt-field">
         <span>{T.form.reason}</span>
-        <input type="text" value={reason} autoFocus placeholder={T.form.reasonPlaceholder} onChange={(e) => setReason(e.target.value)} />
+        <input type="text" value={reason} autoFocus={focusTextOnOpen} placeholder={T.form.reasonPlaceholder} onChange={(e) => setReason(e.target.value)} />
       </label>
     </FormFrame>
   );
@@ -256,7 +260,7 @@ export function EditForm({ task, categories, run, onSuccess, onCancel, onOpenNot
       </div>
       <label className="tt-field">
         <span>{T.form.category}</span>
-        <input type="text" list={listId} value={category} autoFocus onChange={(e) => setCategory(e.target.value)} />
+        <input type="text" list={listId} value={category} autoFocus={focusTextOnOpen} onChange={(e) => setCategory(e.target.value)} />
         <datalist id={listId}>
           {categories.map((c) => (
             <option key={c} value={c} />
@@ -334,7 +338,7 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
           type="text"
           value={title}
           required
-          autoFocus
+          autoFocus={focusTextOnOpen}
           onChange={(e) => {
             setTitle(e.target.value);
             // 제목이 바뀌면 같은 제목 확인을 처음부터 다시 한다.

@@ -3,3 +3,5 @@
  * 화면 테스트에서는 이 대체 모듈을 쓰고, 화면이 쓰는 것만 둔다.
  */
 export function setIcon(): void {}
+
+export const Platform = { isMobile: false };
