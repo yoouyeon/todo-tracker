@@ -139,7 +139,6 @@ body.is-mobile .tt-touch-only {
 .tt-item.is-cancelled .tt-item-title {
   color: var(--text-muted);
   text-decoration: line-through;
-  text-decoration-color: var(--text-faint);
 }
 .tt-meta {
   flex: none;

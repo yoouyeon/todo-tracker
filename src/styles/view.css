@@ -28,8 +28,8 @@
   align-items: center;
   --icon-size: var(--icon-s);
 }
-/* 아이콘과 글자를 함께 쓰는 버튼에서 둘이 붙지 않게 한다. 아이콘만 있는 버튼에는 영향이 없다. */
-.tt-view button:has(> .tt-icon) {
+/* 아이콘과 글자를 함께 쓰는 버튼에서 둘이 붙지 않게 한다. gap은 자식이 둘 이상일 때만 생기므로 아이콘만, 글자만 있는 버튼에는 영향이 없다. */
+.tt-view button {
   gap: var(--size-2-2);
 }
 .tt-faint {
