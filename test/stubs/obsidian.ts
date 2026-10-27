@@ -5,3 +5,6 @@
 export function setIcon(): void {}
 
 export const Platform = { isMobile: false };
+
+/** 설정 화면은 테스트하지 않지만, 설정 읽기 함수가 같은 파일에 있어 불러올 수 있게만 둔다. */
+export class PluginSettingTab {}

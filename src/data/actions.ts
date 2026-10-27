@@ -1,6 +1,6 @@
 import { isValidDate, monthOf } from "../logic/dates";
+import { t } from "../i18n";
 import {
-  MESSAGES,
   cancelTask,
   changeCancellation,
   changeCompletedDate,
@@ -13,6 +13,7 @@ import {
   type NewTaskInput,
   type TaskPatch,
 } from "./editMonthNote";
+import type { NoteLanguage } from "./monthNoteSyntax";
 import { normalizeFolder } from "./paths";
 import type { TaskRecord } from "./types";
 
@@ -39,50 +40,57 @@ export class TaskActions {
   constructor(
     private readonly writer: MonthNoteWriter,
     private readonly getFolder: () => string,
+    /** 새로 쓰는 필드 이름의 언어 */
+    private readonly getLanguage: () => NoteLanguage = () => "ko",
   ) {}
 
+  private get lang(): NoteLanguage {
+    return this.getLanguage();
+  }
+
   complete(task: TaskRecord, date: string): Promise<ActionResult> {
-    return this.editExisting(task, (content) => completeTask(content, task.sourcePath, task, date));
+    return this.editExisting(task, (content) => completeTask(content, task.sourcePath, task, date, this.lang));
   }
 
   /** 완료한 항목의 완료한 날을 바꾼다. */
   changeCompletedDate(task: TaskRecord, date: string): Promise<ActionResult> {
-    return this.editExisting(task, (content) => changeCompletedDate(content, task.sourcePath, task, date));
+    return this.editExisting(task, (content) => changeCompletedDate(content, task.sourcePath, task, date, this.lang));
   }
 
   /** 취소한 항목의 취소한 날과 이유를 바꾼다. */
   changeCancellation(task: TaskRecord, date: string, reason: string): Promise<ActionResult> {
-    return this.editExisting(task, (content) => changeCancellation(content, task.sourcePath, task, date, reason));
+    return this.editExisting(task, (content) => changeCancellation(content, task.sourcePath, task, date, reason, this.lang));
   }
 
   /** 완료나 취소를 되돌린다. `task`는 완료했거나 취소한 상태의 항목이다. */
   reopen(task: TaskRecord): Promise<ActionResult> {
-    return this.editExisting(task, (content) => reopenTask(content, task.sourcePath, task));
+    return this.editExisting(task, (content) => reopenTask(content, task.sourcePath, task, this.lang));
   }
 
   cancel(task: TaskRecord, date: string, reason: string): Promise<ActionResult> {
-    return this.editExisting(task, (content) => cancelTask(content, task.sourcePath, task, date, reason));
+    return this.editExisting(task, (content) => cancelTask(content, task.sourcePath, task, date, reason, this.lang));
   }
 
   changeDate(task: TaskRecord, date: string): Promise<ActionResult> {
-    return this.editExisting(task, (content) => changePlannedDate(content, task.sourcePath, task, date));
+    return this.editExisting(task, (content) => changePlannedDate(content, task.sourcePath, task, date, this.lang));
   }
 
   update(task: TaskRecord, patch: TaskPatch): Promise<ActionResult> {
-    return this.editExisting(task, (content) => updateTask(content, task.sourcePath, task, patch));
+    return this.editExisting(task, (content) => updateTask(content, task.sourcePath, task, patch, this.lang));
   }
 
   /** 첫 계획 날짜의 월 파일에 새 항목을 넣는다. 파일이 없으면 새 월 노트를 만든다. */
   async addTask(input: NewTaskInput): Promise<ActionResult> {
-    if (!isValidDate(input.date)) return fail(MESSAGES.badDate);
+    if (!isValidDate(input.date)) return fail(t("edit.badDate"));
     const folder = normalizeFolder(this.getFolder());
     const path = `${folder === "" ? "" : `${folder}/`}${monthOf(input.date)}.md`;
-    const insert = (content: string) => insertTask(content, path, input);
+    const lang = this.lang;
+    const insert = (content: string) => insertTask(content, path, input, lang);
 
     const existing = await this.run(path, insert);
     if (existing !== "missing") return existing;
 
-    const created = insertTask(null, path, input);
+    const created = insertTask(null, path, input, lang);
     if (!created.ok) return fail(created.error.message);
     try {
       await this.writer.create(path, created.content);
@@ -90,13 +98,13 @@ export class TaskActions {
     } catch (error) {
       // 그 사이 같은 파일이 만들어졌을 수 있다. 이 경우에만 한 번 더 시도한다.
       const retry = await this.run(path, insert);
-      return retry === "missing" ? fail(`노트를 만들지 못했어요: ${describe(error)}`) : retry;
+      return retry === "missing" ? fail(t("edit.createFailed", { reason: describe(error) })) : retry;
     }
   }
 
   private async editExisting(task: TaskRecord, edit: (content: string) => EditResult): Promise<ActionResult> {
     const result = await this.run(task.sourcePath, edit);
-    return result === "missing" ? fail(`노트를 찾을 수 없어요: ${task.sourcePath}`) : result;
+    return result === "missing" ? fail(t("edit.noteMissing", { path: task.sourcePath })) : result;
   }
 
   private async run(path: string, edit: (content: string) => EditResult): Promise<ActionResult | "missing"> {
@@ -111,7 +119,7 @@ export class TaskActions {
         return content;
       });
     } catch (error) {
-      return fail(`저장하지 못했어요: ${describe(error)}`);
+      return fail(t("edit.saveFailed", { reason: describe(error) }));
     }
     if (!found) return "missing";
     return state.error === null ? OK : fail(state.error);

@@ -1,5 +1,18 @@
 import { isValidDate, isValidTime } from "../logic/dates";
-import { FIELD, INDENTED_RE, KNOWN_FIELDS, PROPERTY_RE, TASK_HEADER_RE, indentOf, splitLines, type Line } from "./monthNoteSyntax";
+import { t } from "../i18n";
+import {
+  FIELD_NAMES,
+  INDENTED_RE,
+  PROPERTY_RE,
+  TASK_HEADER_RE,
+  fieldOf,
+  frontmatterKeys,
+  indentOf,
+  splitLines,
+  type FieldId,
+  type Line,
+  type NoteLanguage,
+} from "./monthNoteSyntax";
 import type { Deadline, MonthNoteFrontmatter, ParsedMonthNote, ProblemCode, TaskProblem, TaskRecord, TaskStatus } from "./types";
 
 const DEADLINE_RE = /^(\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}))?$/;
@@ -16,7 +29,7 @@ function parseFrontmatter(lines: Line[], issues: string[]): { frontmatter: Month
   if (lines[0]?.text !== "---") return { frontmatter: null, bodyStart: 0 };
   const close = lines.findIndex((line, i) => i > 0 && line.text === "---");
   if (close === -1) {
-    issues.push("frontmatter를 닫는 `---`가 없음");
+    issues.push(t("parse.unclosedFrontmatter"));
     return { frontmatter: null, bodyStart: 0 };
   }
   const values = new Map<string, string>();
@@ -24,12 +37,14 @@ function parseFrontmatter(lines: Line[], issues: string[]): { frontmatter: Month
     const idx = line.text.indexOf(":");
     if (idx > 0) values.set(line.text.slice(0, idx).trim(), line.text.slice(idx + 1).trim());
   }
-  const month = values.get("월") ?? null;
-  const flag = values.get("미완료")?.toLowerCase();
+  const pick = (keys: string[]) => keys.map((key) => [key, values.get(key)] as const).find(([, value]) => value !== undefined);
+  const month = pick(frontmatterKeys("month"))?.[1] ?? null;
+  const [flagKey, flagValue] = pick(frontmatterKeys("hasOpen")) ?? [];
+  const flag = flagValue?.toLowerCase();
   let hasOpen: boolean | null = null;
   if (flag === "true") hasOpen = true;
   else if (flag === "false") hasOpen = false;
-  else if (flag !== undefined) issues.push(`frontmatter 미완료 값이 true/false가 아님: ${flag}`);
+  else if (flag !== undefined) issues.push(t("parse.badOpenFlag", { key: flagKey ?? "", value: flag }));
   return { frontmatter: { month, hasOpen }, bodyStart: close + 1 };
 }
 
@@ -42,7 +57,7 @@ function parseDeadline(value: string): Deadline | null {
   return { date, time };
 }
 
-function parseTaskBlock(path: string, content: string, lines: Line[], first: number, last: number): TaskRecord {
+function parseTaskBlock(path: string, content: string, lines: Line[], first: number, last: number, lang: NoteLanguage): TaskRecord {
   const header = lines[first];
   const lastLine = lines[last];
   if (!header || !lastLine) throw new Error("항목 범위가 올바르지 않음");
@@ -56,8 +71,8 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
   let status: TaskStatus = "open";
   if (symbol === "x" || symbol === "X") status = "done";
   else if (symbol === "-") status = "cancelled";
-  else if (symbol !== " ") problem("checkbox", `체크박스 기호를 알 수 없음: [${symbol}]`);
-  if (title === "") problem("title", "제목이 비어 있음");
+  else if (symbol !== " ") problem("checkbox", t("parse.badCheckbox", { symbol }));
+  if (title === "") problem("title", t("parse.noTitle"));
 
   const task: TaskRecord = {
     sourcePath: path,
@@ -79,11 +94,13 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
     problems,
   };
 
-  const seen = new Set<string>();
+  const seen = new Set<FieldId>();
+  // 문제 문구에 적는 필드 이름은 이 항목이 쓰는 언어를 따른다. 알려진 속성이 없으면 설정한 언어
+  let itemLang = lang;
   const singleDate = (key: string, value: string): string | null => {
     if (value === "") return null;
     if (isValidDate(value)) return value;
-    problem("date", `${key} 형식 오류: ${value}`);
+    problem("date", t("parse.badDate", { key, value }));
     return null;
   };
 
@@ -94,54 +111,60 @@ function parseTaskBlock(path: string, content: string, lines: Line[], first: num
     const prop = indentOf(line.text) === baseIndent ? PROPERTY_RE.exec(line.text) : null;
     const key = prop?.[1]?.trim();
     const value = prop?.[2]?.trim() ?? "";
-    if (!prop || key === undefined || !KNOWN_FIELDS.has(key)) {
+    const field = key === undefined ? null : fieldOf(key);
+    if (!prop || key === undefined || field === null) {
       task.unrecognizedLines.push(line.text);
       continue;
     }
-    if (seen.has(key)) {
-      problem("duplicateField", `${key} 속성이 두 번 이상 나옴`);
+    if (seen.size === 0) itemLang = field.lang;
+    // 같은 필드를 두 언어로 한 번씩 적은 것도 두 번 적은 것으로 본다.
+    if (seen.has(field.id)) {
+      problem("duplicateField", t("parse.duplicate", { key }));
       continue;
     }
-    seen.add(key);
+    seen.add(field.id);
 
-    switch (key) {
-      case FIELD.planned: {
+    switch (field.id) {
+      case "planned": {
         // 날짜를 쉼표로 이어 적던 예전 형식은 어느 날짜가 처음이고 어느 날짜가 지금인지 고쳐 적게 한다.
-        if (value.includes(",")) problem("planned", `${key}에 날짜가 여러 개 있음. 처음 날짜는 '${FIELD.firstPlanned}'에 따로 적어 주세요`);
+        if (value.includes(",")) problem("planned", t("parse.plannedList", { key, first: FIELD_NAMES[field.lang].firstPlanned }));
         else task.planned = singleDate(key, value);
         break;
       }
-      case FIELD.firstPlanned: task.firstPlanned = singleDate(key, value); break;
-      case FIELD.completed: task.completedOn = singleDate(key, value); break;
-      case FIELD.cancelled: task.cancelledOn = singleDate(key, value); break;
-      case FIELD.reason: task.cancelReason = value || null; break;
-      case FIELD.category: task.category = value || null; break;
-      case FIELD.alias: task.aliasText = value || null; break;
-      case FIELD.memo: task.memo = value || null; break;
-      case FIELD.deadline: {
+      case "firstPlanned": task.firstPlanned = singleDate(key, value); break;
+      case "completed": task.completedOn = singleDate(key, value); break;
+      case "cancelled": task.cancelledOn = singleDate(key, value); break;
+      case "reason": task.cancelReason = value || null; break;
+      case "category": task.category = value || null; break;
+      case "alias": task.aliasText = value || null; break;
+      case "memo": task.memo = value || null; break;
+      case "deadline": {
         if (value === "") break;
         const deadline = parseDeadline(value);
         if (deadline) task.deadline = deadline;
-        else problem("date", `${key} 형식 오류: ${value}`);
+        else problem("date", t("parse.badDate", { key, value }));
         break;
       }
     }
   }
 
-  if (task.planned === null && !problems.some((p) => p.code === "planned")) problem("planned", `${FIELD.planned} 없음`);
+  if (task.planned === null && !problems.some((p) => p.code === "planned")) problem("planned", t("parse.missing", { key: FIELD_NAMES[itemLang].planned }));
   // 처음 날짜를 따로 적지 않았으면 한 번도 바꾸지 않은 것이므로 지금 날짜가 처음 날짜다.
-  if (!seen.has(FIELD.firstPlanned)) task.firstPlanned = task.planned;
+  if (!seen.has("firstPlanned")) task.firstPlanned = task.planned;
 
   return task;
 }
 
-/** frontmatter `미완료`의 기준. 체크박스 기호가 올바른 `[ ]` 항목이 하나라도 있으면 true */
+/** frontmatter `미완료`(`open`)의 기준. 체크박스 기호가 올바른 `[ ]` 항목이 하나라도 있으면 true */
 export function hasOpenTask(tasks: TaskRecord[]): boolean {
   return tasks.some((t) => t.status === "open" && !t.problems.some((p) => p.code === "checkbox"));
 }
 
-/** 월 파일 본문에서 frontmatter와 최상위 체크리스트 항목을 읽는다. 잘못된 항목도 버리지 않는다. */
-export function parseMonthNote(path: string, content: string): ParsedMonthNote {
+/**
+ * 월 파일 본문에서 frontmatter와 최상위 체크리스트 항목을 읽는다. 잘못된 항목도 버리지 않는다.
+ * 필드 이름은 두 언어를 모두 읽는다. `lang`은 속성이 하나도 없는 항목의 문제 문구에만 쓴다.
+ */
+export function parseMonthNote(path: string, content: string, lang: NoteLanguage = "ko"): ParsedMonthNote {
   const issues: string[] = [];
   const lines = splitLines(content);
   const { frontmatter, bodyStart } = parseFrontmatter(lines, issues);
@@ -156,22 +179,22 @@ export function parseMonthNote(path: string, content: string): ParsedMonthNote {
     }
     let last = i;
     while (lines[last + 1] && INDENTED_RE.test(lines[last + 1]?.text ?? "")) last += 1;
-    tasks.push(parseTaskBlock(path, content, lines, i, last));
+    tasks.push(parseTaskBlock(path, content, lines, i, last, lang));
     i = last + 1;
   }
 
   const fileMonth = monthOfNotePath(path);
   if (frontmatter) {
-    if (frontmatter.month === null) issues.push("frontmatter에 월이 없음");
+    if (frontmatter.month === null) issues.push(t("parse.noMonth"));
     else if (fileMonth !== null && frontmatter.month !== fileMonth) {
-      issues.push(`frontmatter 월(${frontmatter.month})이 파일 이름(${fileMonth})과 다름`);
+      issues.push(t("parse.monthMismatch", { month: frontmatter.month, file: fileMonth }));
     }
     const hasOpen = hasOpenTask(tasks);
     if (frontmatter.hasOpen !== null && frontmatter.hasOpen !== hasOpen) {
-      issues.push(`frontmatter 미완료(${frontmatter.hasOpen})가 본문(${hasOpen})과 다름`);
+      issues.push(t("parse.openMismatch", { flag: frontmatter.hasOpen, body: hasOpen }));
     }
   } else if (tasks.length > 0) {
-    issues.push("frontmatter가 없음");
+    issues.push(t("parse.noFrontmatter"));
   }
 
   return { path, frontmatter, tasks, issues };

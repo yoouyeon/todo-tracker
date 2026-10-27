@@ -9,7 +9,7 @@ import { formatMonthDay, monthNoteFileName } from "../logic/format";
 import { findOpenDuplicates } from "../logic/selectors";
 import { CancelForm, CancellationForm, CompletedDateForm, CompleteForm, DateForm, EditForm, NewTaskForm } from "../ui/forms";
 import type { AppHost } from "../ui/host";
-import { T } from "../ui/strings";
+import { t } from "../i18n";
 import { ReactModal } from "./ReactModal";
 
 interface Deps {
@@ -37,7 +37,7 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
   const notifyFailure = (task: TaskRecord, message: string) => {
     const content = createFragment((fragment) => {
       fragment.createDiv({ text: message });
-      const button = fragment.createEl("button", { text: T.openNote, cls: "tt-notice-action" });
+      const button = fragment.createEl("button", { text: t("openNote"), cls: "tt-notice-action" });
       button.addEventListener("click", () => open(task));
     });
     new Notice(content, 10_000);
@@ -68,16 +68,16 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
   const notifyCompleted = (task: TaskRecord) => {
     const notice = new Notice(
       createFragment((fragment) => {
-        fragment.createDiv({ text: T.notice.completed(task.title) });
-        const button = fragment.createEl("button", { text: T.notice.undo, cls: "tt-notice-action" });
+        fragment.createDiv({ text: t("notice.completed", { title: task.title }) });
+        const button = fragment.createEl("button", { text: t("notice.undo"), cls: "tt-notice-action" });
         button.addEventListener("click", () => {
           notice.hide();
           const completed = findCompleted(task);
           if (!completed) {
-            notifyFailure(task, T.notice.undoMissing);
+            notifyFailure(task, t("notice.undoMissing"));
             return;
           }
-          void quick(completed, () => actions.reopen(completed), T.notice.reopened(task.title));
+          void quick(completed, () => actions.reopen(completed), t("notice.reopened", { title: task.title }));
         });
       }),
       10_000,
@@ -90,13 +90,13 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     openNote: open,
 
     newTask(defaultDate) {
-      showModal(T.form.createTitle, (close) => (
+      showModal(t("form.createTitle"), (close) => (
         <NewTaskForm
           defaultDate={defaultDate}
           categories={categories()}
           findDuplicates={(title) => findOpenDuplicates(store.getSnapshot().monthNotes, title)}
-          onCreate={(input) => notifyOnSuccess(() => actions.addTask(input), T.notice.created(monthNoteFileName(input.date)))}
-          onChangeDate={(task, date) => notifyOnSuccess(() => actions.changeDate(task, date), T.notice.dateChanged(task.title, formatMonthDay(date)))}
+          onCreate={(input) => notifyOnSuccess(() => actions.addTask(input), t("notice.created", { file: monthNoteFileName(input.date) }))}
+          onChangeDate={(task, date) => notifyOnSuccess(() => actions.changeDate(task, date), t("notice.dateChanged", { title: task.title, date: formatMonthDay(date) }))}
           onSuccess={close}
           onCancel={close}
         />
@@ -108,11 +108,11 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     },
 
     completeOn(task, today) {
-      showModal(T.form.completeTitle, (close) => (
+      showModal(t("form.completeTitle"), (close) => (
         <CompleteForm
           task={task}
           today={today}
-          run={(date) => notifyOnSuccess(() => actions.complete(task, date), T.notice.completed(task.title))}
+          run={(date) => notifyOnSuccess(() => actions.complete(task, date), t("notice.completed", { title: task.title }))}
           onSuccess={close}
           onCancel={close}
           onOpenNote={() => open(task)}
@@ -121,10 +121,10 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     },
 
     changeCompletedOn(task) {
-      showModal(T.form.completedDateTitle, (close) => (
+      showModal(t("form.completedDateTitle"), (close) => (
         <CompletedDateForm
           task={task}
-          run={(date) => notifyOnSuccess(() => actions.changeCompletedDate(task, date), T.notice.completedDateChanged(task.title, formatMonthDay(date)))}
+          run={(date) => notifyOnSuccess(() => actions.changeCompletedDate(task, date), t("notice.completedDateChanged", { title: task.title, date: formatMonthDay(date) }))}
           onSuccess={close}
           onCancel={close}
           onOpenNote={() => open(task)}
@@ -133,10 +133,10 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     },
 
     changeCancellation(task) {
-      showModal(T.form.cancellationTitle, (close) => (
+      showModal(t("form.cancellationTitle"), (close) => (
         <CancellationForm
           task={task}
-          run={(date, reason) => notifyOnSuccess(() => actions.changeCancellation(task, date, reason), T.notice.cancellationChanged(task.title))}
+          run={(date, reason) => notifyOnSuccess(() => actions.changeCancellation(task, date, reason), t("notice.cancellationChanged", { title: task.title }))}
           onSuccess={close}
           onCancel={close}
           onOpenNote={() => open(task)}
@@ -145,16 +145,16 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     },
 
     reopen(task) {
-      const message = task.status === "cancelled" ? T.notice.uncancelled(task.title) : T.notice.reopened(task.title);
+      const message = task.status === "cancelled" ? t("notice.uncancelled", { title: task.title }) : t("notice.reopened", { title: task.title });
       void quick(task, () => actions.reopen(task), message);
     },
 
     cancel(task, today) {
-      showModal(T.form.cancelTitle, (close) => (
+      showModal(t("form.cancelTitle"), (close) => (
         <CancelForm
           task={task}
           today={today}
-          run={(date, reason) => notifyOnSuccess(() => actions.cancel(task, date, reason), T.notice.cancelled(task.title))}
+          run={(date, reason) => notifyOnSuccess(() => actions.cancel(task, date, reason), t("notice.cancelled", { title: task.title }))}
           onSuccess={close}
           onCancel={close}
           onOpenNote={() => open(task)}
@@ -163,11 +163,11 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     },
 
     pickDate(task, today) {
-      showModal(T.form.dateTitle, (close) => (
+      showModal(t("form.dateTitle"), (close) => (
         <DateForm
           task={task}
           today={today}
-          run={(date) => notifyOnSuccess(() => actions.changeDate(task, date), T.notice.dateChanged(task.title, formatMonthDay(date)))}
+          run={(date) => notifyOnSuccess(() => actions.changeDate(task, date), t("notice.dateChanged", { title: task.title, date: formatMonthDay(date) }))}
           onSuccess={close}
           onCancel={close}
           onOpenNote={() => open(task)}
@@ -176,11 +176,11 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
     },
 
     edit(task) {
-      showModal(T.form.editTitle, (close) => (
+      showModal(t("form.editTitle"), (close) => (
         <EditForm
           task={task}
           categories={categories()}
-          run={(patch) => notifyOnSuccess(() => actions.update(task, patch), T.notice.updated(task.title))}
+          run={(patch) => notifyOnSuccess(() => actions.update(task, patch), t("notice.updated", { title: task.title }))}
           onSuccess={close}
           onCancel={close}
           onOpenNote={() => open(task)}
@@ -194,8 +194,8 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
 
       if (isOpen) {
         const days = [
-          { title: T.menu.today, date: today, icon: "sun" },
-          { title: T.menu.tomorrow, date: addDays(today, 1), icon: "arrow-right" },
+          { title: t("menu.today"), date: today, icon: "sun" },
+          { title: t("menu.tomorrow"), date: addDays(today, 1), icon: "arrow-right" },
         ];
         for (const day of days) {
           menu.addItem((item) =>
@@ -204,32 +204,32 @@ export function createHost({ app, store, actions, openNote }: Deps): AppHost {
               .setIcon(day.icon)
               // 이미 계획한 날짜와 현재 계획 날짜보다 앞선 날짜는 더할 수 없다.
               .setDisabled(plannedDateError(task, day.date) !== null)
-              .onClick(() => void quick(task, () => actions.changeDate(task, day.date), T.notice.dateChanged(task.title, formatMonthDay(day.date)))),
+              .onClick(() => void quick(task, () => actions.changeDate(task, day.date), t("notice.dateChanged", { title: task.title, date: formatMonthDay(day.date) }))),
           );
         }
-        menu.addItem((item) => item.setTitle(T.menu.pickDate).setIcon("calendar").onClick(() => host.pickDate(task, today)));
+        menu.addItem((item) => item.setTitle(t("menu.pickDate")).setIcon("calendar").onClick(() => host.pickDate(task, today)));
       }
 
       if (kind === "task") {
         if (isOpen) {
           menu.addSeparator();
-          menu.addItem((item) => item.setTitle(T.menu.complete).setIcon("check").onClick(() => host.completeOn(task, today)));
-          menu.addItem((item) => item.setTitle(T.menu.edit).setIcon("pencil").onClick(() => host.edit(task)));
+          menu.addItem((item) => item.setTitle(t("menu.complete")).setIcon("check").onClick(() => host.completeOn(task, today)));
+          menu.addItem((item) => item.setTitle(t("menu.edit")).setIcon("pencil").onClick(() => host.edit(task)));
         }
         if (task.status === "done") {
-          menu.addItem((item) => item.setTitle(T.menu.changeCompleted).setIcon("calendar-check").onClick(() => host.changeCompletedOn(task)));
-          menu.addItem((item) => item.setTitle(T.menu.reopen).setIcon("undo-2").onClick(() => host.reopen(task)));
+          menu.addItem((item) => item.setTitle(t("menu.changeCompleted")).setIcon("calendar-check").onClick(() => host.changeCompletedOn(task)));
+          menu.addItem((item) => item.setTitle(t("menu.reopen")).setIcon("undo-2").onClick(() => host.reopen(task)));
           menu.addSeparator();
         }
         if (task.status === "cancelled") {
-          menu.addItem((item) => item.setTitle(T.menu.changeCancellation).setIcon("pencil").onClick(() => host.changeCancellation(task)));
-          menu.addItem((item) => item.setTitle(T.menu.uncancel).setIcon("undo-2").onClick(() => host.reopen(task)));
+          menu.addItem((item) => item.setTitle(t("menu.changeCancellation")).setIcon("pencil").onClick(() => host.changeCancellation(task)));
+          menu.addItem((item) => item.setTitle(t("menu.uncancel")).setIcon("undo-2").onClick(() => host.reopen(task)));
           menu.addSeparator();
         }
-        menu.addItem((item) => item.setTitle(T.menu.openNote).setIcon("file-text").onClick(() => open(task)));
+        menu.addItem((item) => item.setTitle(t("menu.openNote")).setIcon("file-text").onClick(() => open(task)));
         if (isOpen) {
           menu.addSeparator();
-          menu.addItem((item) => item.setTitle(T.menu.cancel).setIcon("ban").setWarning(true).onClick(() => host.cancel(task, today)));
+          menu.addItem((item) => item.setTitle(t("menu.cancel")).setIcon("ban").setWarning(true).onClick(() => host.cancel(task, today)));
         }
       }
       menu.showAtMouseEvent(event);

@@ -1,7 +1,7 @@
 import type { Counts } from "../logic/selectors";
 import { cx } from "./cx";
 import { Icon } from "./Icon";
-import { T } from "./strings";
+import { t } from "../i18n";
 
 export type Tab = "all" | "past" | "today" | "upcoming" | "records";
 type CardTab = Exclude<Tab, "all">;
@@ -15,10 +15,10 @@ interface Props {
 
 export function StatCards({ counts, tab, onSelect }: Props) {
   const cards: { key: CardTab; label: string; num: number; caption: string; icon: string }[] = [
-    { key: "past", label: T.stat.past, num: counts.past, caption: counts.stale > 0 ? T.stat.pastStale(counts.stale) : T.stat.pastEmpty, icon: "history" },
-    { key: "today", label: T.stat.today, num: counts.today, caption: counts.doneToday > 0 ? T.stat.todayDone(counts.doneToday) : T.stat.todayEmpty, icon: "sun" },
-    { key: "upcoming", label: T.stat.upcoming, num: counts.upcoming, caption: T.stat.upcomingCaption, icon: "calendar" },
-    { key: "records", label: T.stat.records, num: counts.records, caption: T.stat.recordsCaption(counts.done, counts.cancelled), icon: "circle-check" },
+    { key: "past", label: t("stat.past"), num: counts.past, caption: counts.stale > 0 ? t("stat.pastStale", { n: counts.stale }) : t("stat.pastEmpty"), icon: "history" },
+    { key: "today", label: t("stat.today"), num: counts.today, caption: counts.doneToday > 0 ? t("stat.todayDone", { n: counts.doneToday }) : t("stat.todayEmpty"), icon: "sun" },
+    { key: "upcoming", label: t("stat.upcoming"), num: counts.upcoming, caption: t("stat.upcomingCaption"), icon: "calendar" },
+    { key: "records", label: t("stat.records"), num: counts.records, caption: t("stat.recordsCaption", { done: counts.done, cancelled: counts.cancelled }), icon: "circle-check" },
   ];
   return (
     <div className="tt-stats">

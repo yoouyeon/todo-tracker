@@ -7,7 +7,7 @@ import { addDays } from "../logic/dates";
 import { formatMonthDay, monthNoteFileName } from "../logic/format";
 import { Icon } from "./Icon";
 import { nextNewTaskStep } from "./newTaskFlow";
-import { T } from "./strings";
+import { t } from "../i18n";
 
 /** 저장 요청의 결과. `pending`이면 입력창을 닫지 않고 계속 보여 준다. */
 type Outcome = ActionResult | "pending";
@@ -81,14 +81,14 @@ function FormFrame({ title, submitLabel, submitClassName = "mod-cta", submitDisa
           <span>{error}</span>
           {onOpenNote && (
             <button type="button" onClick={onOpenNote}>
-              {T.openNote}
+              {t("openNote")}
             </button>
           )}
         </div>
       )}
       <div className="tt-form-actions">
         <button type="button" onClick={onCancel}>
-          {T.form.back}
+          {t("form.back")}
         </button>
         <button type="submit" className={submitClassName} disabled={busy || submitDisabled}>
           {submitLabel}
@@ -111,7 +111,7 @@ export function CompleteForm({ task, today, run, onSuccess, onCancel, onOpenNote
   return (
     <FormFrame
       title={task.title}
-      submitLabel={T.form.completeSubmit}
+      submitLabel={t("form.completeSubmit")}
       busy={busy}
       error={error}
       submitDisabled={date === ""}
@@ -120,10 +120,10 @@ export function CompleteForm({ task, today, run, onSuccess, onCancel, onOpenNote
       onOpenNote={onOpenNote}
     >
       <label className="tt-field">
-        <span>{T.form.completedOn}</span>
+        <span>{t("form.completedOn")}</span>
         <PickerInput type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
-      <p className="tt-help">{T.form.completeHelp(task.sourcePath)}</p>
+      <p className="tt-help">{t("form.completeHelp", { file: task.sourcePath })}</p>
     </FormFrame>
   );
 }
@@ -134,7 +134,7 @@ export function CompletedDateForm({ task, run, onSuccess, onCancel, onOpenNote }
   return (
     <FormFrame
       title={task.title}
-      submitLabel={T.form.completedDateSubmit}
+      submitLabel={t("form.completedDateSubmit")}
       busy={busy}
       error={error}
       submitDisabled={date === "" || date === task.completedOn}
@@ -143,10 +143,10 @@ export function CompletedDateForm({ task, run, onSuccess, onCancel, onOpenNote }
       onOpenNote={onOpenNote}
     >
       <label className="tt-field">
-        <span>{T.form.completedOn}</span>
+        <span>{t("form.completedOn")}</span>
         <PickerInput type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
-      {task.completedOn && <p className="tt-help">{T.form.completedDateHelp(formatMonthDay(task.completedOn))}</p>}
+      {task.completedOn && <p className="tt-help">{t("form.completedDateHelp", { current: formatMonthDay(task.completedOn) })}</p>}
     </FormFrame>
   );
 }
@@ -158,7 +158,7 @@ export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }
   return (
     <FormFrame
       title={task.title}
-      submitLabel={T.form.cancelSubmit}
+      submitLabel={t("form.cancelSubmit")}
       submitClassName="mod-warning"
       submitDisabled={date === ""}
       busy={busy}
@@ -168,12 +168,12 @@ export function CancelForm({ task, today, run, onSuccess, onCancel, onOpenNote }
       onOpenNote={onOpenNote}
     >
       <label className="tt-field">
-        <span>{T.form.cancelledOn}</span>
+        <span>{t("form.cancelledOn")}</span>
         <PickerInput type="date" value={date} required onChange={(e) => setDate(e.target.value)} />
       </label>
       <label className="tt-field">
-        <span>{T.form.reason}</span>
-        <input type="text" value={reason} autoFocus={focusTextOnOpen} placeholder={T.form.reasonPlaceholder} onChange={(e) => setReason(e.target.value)} />
+        <span>{t("form.reason")}</span>
+        <input type="text" value={reason} autoFocus={focusTextOnOpen} placeholder={t("form.reasonPlaceholder")} onChange={(e) => setReason(e.target.value)} />
       </label>
     </FormFrame>
   );
@@ -187,7 +187,7 @@ export function CancellationForm({ task, run, onSuccess, onCancel, onOpenNote }:
   return (
     <FormFrame
       title={task.title}
-      submitLabel={T.form.cancellationSubmit}
+      submitLabel={t("form.cancellationSubmit")}
       submitDisabled={date === "" || unchanged}
       busy={busy}
       error={error}
@@ -196,12 +196,12 @@ export function CancellationForm({ task, run, onSuccess, onCancel, onOpenNote }:
       onOpenNote={onOpenNote}
     >
       <label className="tt-field">
-        <span>{T.form.cancelledOn}</span>
+        <span>{t("form.cancelledOn")}</span>
         <PickerInput type="date" value={date} required autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
       <label className="tt-field">
-        <span>{T.form.reason}</span>
-        <input type="text" value={reason} placeholder={T.form.reasonPlaceholder} onChange={(e) => setReason(e.target.value)} />
+        <span>{t("form.reason")}</span>
+        <input type="text" value={reason} placeholder={t("form.reasonPlaceholder")} onChange={(e) => setReason(e.target.value)} />
       </label>
     </FormFrame>
   );
@@ -222,7 +222,7 @@ export function DateForm({ task, today, run, onSuccess, onCancel, onOpenNote }: 
   return (
     <FormFrame
       title={task.title}
-      submitLabel={T.form.dateSubmit}
+      submitLabel={t("form.dateSubmit")}
       submitDisabled={date === ""}
       busy={busy}
       error={error}
@@ -231,14 +231,14 @@ export function DateForm({ task, today, run, onSuccess, onCancel, onOpenNote }: 
       onOpenNote={onOpenNote}
     >
       <div className="tt-quick">
-        {quick(today, T.form.today(formatMonthDay(today)))}
-        {quick(tomorrow, T.form.tomorrow(formatMonthDay(tomorrow)))}
+        {quick(today, t("form.today", { date: formatMonthDay(today) }))}
+        {quick(tomorrow, t("form.tomorrow", { date: formatMonthDay(tomorrow) }))}
       </div>
       <label className="tt-field">
-        <span>{T.form.otherDate}</span>
+        <span>{t("form.otherDate")}</span>
         <PickerInput type="date" value={date} autoFocus onChange={(e) => setDate(e.target.value)} />
       </label>
-      {task.planned && <p className="tt-help">{T.form.dateHelp(formatMonthDay(task.planned))}</p>}
+      {task.planned && <p className="tt-help">{t("form.dateHelp", { current: formatMonthDay(task.planned) })}</p>}
     </FormFrame>
   );
 }
@@ -252,7 +252,7 @@ export function EditForm({ task, categories, run, onSuccess, onCancel, onOpenNot
   const { error, busy, submit } = useSubmit(onSuccess);
 
   const save = async (): Promise<ActionResult> => {
-    if (deadlineDate === "" && deadlineTime !== "") return failed(T.form.deadlineNeedsDate);
+    if (deadlineDate === "" && deadlineTime !== "") return failed(t("form.deadlineNeedsDate"));
     return run({
       deadline: deadlineDate === "" ? null : { date: deadlineDate, time: deadlineTime === "" ? null : deadlineTime },
       category,
@@ -261,16 +261,16 @@ export function EditForm({ task, categories, run, onSuccess, onCancel, onOpenNot
   };
 
   return (
-    <FormFrame title={task.title} submitLabel={T.form.editSubmit} busy={busy} error={error} onSubmit={() => void submit(save)} onCancel={onCancel} onOpenNote={onOpenNote}>
+    <FormFrame title={task.title} submitLabel={t("form.editSubmit")} busy={busy} error={error} onSubmit={() => void submit(save)} onCancel={onCancel} onOpenNote={onOpenNote}>
       <div className="tt-field">
-        <span>{T.form.deadline}</span>
+        <span>{t("form.deadline")}</span>
         <div className="tt-field-row">
-          <PickerInput type="date" aria-label={T.form.deadline} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} />
-          <PickerInput type="time" aria-label={T.form.deadlineTime} value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} />
+          <PickerInput type="date" aria-label={t("form.deadline")} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} />
+          <PickerInput type="time" aria-label={t("form.deadlineTime")} value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} />
         </div>
       </div>
       <label className="tt-field">
-        <span>{T.form.category}</span>
+        <span>{t("form.category")}</span>
         <input type="text" list={listId} value={category} autoFocus={focusTextOnOpen} onChange={(e) => setCategory(e.target.value)} />
         <datalist id={listId}>
           {categories.map((c) => (
@@ -279,10 +279,10 @@ export function EditForm({ task, categories, run, onSuccess, onCancel, onOpenNot
         </datalist>
       </label>
       <label className="tt-field">
-        <span>{T.form.memo}</span>
+        <span>{t("form.memo")}</span>
         <input type="text" value={memo} onChange={(e) => setMemo(e.target.value)} />
       </label>
-      {task.aliasText && <p className="tt-help">{T.form.aliasNote(task.aliasText)}</p>}
+      {task.aliasText && <p className="tt-help">{t("form.aliasNote", { alias: task.aliasText })}</p>}
     </FormFrame>
   );
 }
@@ -312,17 +312,17 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
   const { error, busy, submit } = useSubmit(onSuccess);
 
   const save = async (): Promise<Outcome> => {
-    if (deadlineDate === "" && deadlineTime !== "") return failed(T.form.deadlineNeedsDate);
+    if (deadlineDate === "" && deadlineTime !== "") return failed(t("form.deadlineNeedsDate"));
     const found = findDuplicates(title);
     const step = nextNewTaskStep(found.length, duplicates !== null, choice);
     if (step.kind === "ask") {
       setDuplicates(found);
       return "pending";
     }
-    if (step.kind === "choose") return failed(T.form.chooseFirst);
+    if (step.kind === "choose") return failed(t("form.chooseFirst"));
     if (step.kind === "add-date") {
       const existing = found[step.index];
-      return existing ? onChangeDate(existing, date) : failed(T.form.chooseFirst);
+      return existing ? onChangeDate(existing, date) : failed(t("form.chooseFirst"));
     }
     return onCreate({
       title,
@@ -335,16 +335,16 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
 
   return (
     <FormFrame
-      submitLabel={T.form.createSubmit}
+      submitLabel={t("form.createSubmit")}
       submitDisabled={title.trim() === "" || date === ""}
       busy={busy}
       error={error}
       onSubmit={() => void submit(save)}
       onCancel={onCancel}
     >
-      <p className="tt-help">{T.form.createDesc}</p>
+      <p className="tt-help">{t("form.createDesc")}</p>
       <label className="tt-field">
-        <span>{T.form.titleLabel}</span>
+        <span>{t("form.titleLabel")}</span>
         <input
           type="text"
           value={title}
@@ -359,11 +359,11 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
         />
       </label>
       <label className="tt-field">
-        <span>{T.form.firstDate}</span>
+        <span>{t("form.firstDate")}</span>
         <PickerInput type="date" value={date} required onChange={(e) => setDate(e.target.value)} />
       </label>
       <label className="tt-field">
-        <span>{T.form.category}</span>
+        <span>{t("form.category")}</span>
         <input type="text" list={listId} value={category} onChange={(e) => setCategory(e.target.value)} />
         <datalist id={listId}>
           {categories.map((c) => (
@@ -372,30 +372,30 @@ export function NewTaskForm({ defaultDate, categories, findDuplicates, onCreate,
         </datalist>
       </label>
       <div className="tt-field">
-        <span>{T.form.deadline}</span>
+        <span>{t("form.deadline")}</span>
         <div className="tt-field-row">
-          <PickerInput type="date" aria-label={T.form.deadline} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} />
-          <PickerInput type="time" aria-label={T.form.deadlineTime} value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} />
+          <PickerInput type="date" aria-label={t("form.deadline")} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} />
+          <PickerInput type="time" aria-label={t("form.deadlineTime")} value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} />
         </div>
       </div>
       <label className="tt-field">
-        <span>{T.form.memo}</span>
+        <span>{t("form.memo")}</span>
         <input type="text" value={memo} onChange={(e) => setMemo(e.target.value)} />
       </label>
 
       {duplicates !== null && duplicates.length > 0 && (
         <fieldset className="tt-callout">
-          <legend>{T.form.duplicateTitle(title.trim())}</legend>
-          <p>{T.form.duplicateAsk}</p>
+          <legend>{t("form.duplicateTitle", { title: title.trim() })}</legend>
+          <p>{t("form.duplicateAsk")}</p>
           {duplicates.map((dup, i) => (
             <label key={`${dup.sourcePath}:${dup.line}`} className="tt-choice">
               <input type="radio" name="duplicate-choice" checked={choice === i} onChange={() => setChoice(i)} />
-              <span>{T.form.changeExisting(formatMonthDay(date), dup.sourcePath, formatMonthDay(dup.firstPlanned ?? date))}</span>
+              <span>{t("form.changeExisting", { date: formatMonthDay(date), file: dup.sourcePath, first: formatMonthDay(dup.firstPlanned ?? date) })}</span>
             </label>
           ))}
           <label className="tt-choice">
             <input type="radio" name="duplicate-choice" checked={choice === "new"} onChange={() => setChoice("new")} />
-            <span>{T.form.createNew(monthNoteFileName(date))}</span>
+            <span>{t("form.createNew", { file: monthNoteFileName(date) })}</span>
           </label>
         </fieldset>
       )}

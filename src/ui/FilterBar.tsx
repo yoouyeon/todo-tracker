@@ -1,6 +1,6 @@
 import { cx } from "./cx";
 import { Icon } from "./Icon";
-import { T } from "./strings";
+import { t } from "../i18n";
 
 interface Props {
   deadlineAlert: number;
@@ -26,8 +26,8 @@ export function FilterBar(props: Props) {
         <input
           type="search"
           autoFocus
-          placeholder={T.bar.searchPlaceholder}
-          aria-label={T.bar.search}
+          placeholder={t("bar.searchPlaceholder")}
+          aria-label={t("bar.search")}
           value={props.query}
           onChange={(e) => props.onQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -37,7 +37,7 @@ export function FilterBar(props: Props) {
         <button
           type="button"
           className="clickable-icon"
-          aria-label={T.bar.searchClose}
+          aria-label={t("bar.searchClose")}
           onClick={() => {
             props.onQuery("");
             props.onSearchOpen(false);
@@ -50,16 +50,16 @@ export function FilterBar(props: Props) {
   }
   return (
     <div className="tt-bar" role="toolbar">
-      <button type="button" className={cx("clickable-icon", props.query !== "" && "is-active")} aria-label={T.bar.search} onClick={() => props.onSearchOpen(true)}>
+      <button type="button" className={cx("clickable-icon", props.query !== "" && "is-active")} aria-label={t("bar.search")} onClick={() => props.onSearchOpen(true)}>
         <Icon name="search" />
       </button>
       <span className="tt-bar-sep" />
       <button type="button" className={cx("clickable-icon", props.deadlineOnly && "is-active")} aria-pressed={props.deadlineOnly} onClick={props.onToggleDeadline}>
         <Icon name="flag" />
-        {T.bar.deadline(props.deadlineAlert)}
+        {t("bar.deadline", { n: props.deadlineAlert })}
       </button>
-      <select className="dropdown" aria-label={T.bar.category} value={props.category} onChange={(e) => props.onCategory(e.target.value)}>
-        <option value="">{T.bar.category}</option>
+      <select className="dropdown" aria-label={t("bar.category")} value={props.category} onChange={(e) => props.onCategory(e.target.value)}>
+        <option value="">{t("bar.category")}</option>
         {props.categories.map((c) => (
           <option key={c} value={c}>
             {c}

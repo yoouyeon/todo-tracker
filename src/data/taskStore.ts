@@ -1,4 +1,5 @@
 import { isMonthNotePath, normalizeFolder } from "./paths";
+import type { NoteLanguage } from "./monthNoteSyntax";
 import { parseMonthNote } from "./parseMonthNote";
 import type { ParsedMonthNote } from "./types";
 
@@ -41,6 +42,8 @@ export class TaskStore implements MonthNoteSource {
   constructor(
     private readonly vault: MonthNoteVault,
     private readonly getFolder: () => string,
+    /** 속성이 하나도 없는 항목의 문제 문구에 쓰는 필드 이름의 언어 */
+    private readonly getLanguage: () => NoteLanguage = () => "ko",
   ) {
     this.snapshot = { loaded: false, folder: normalizeFolder(getFolder()), monthNotes: [] };
   }
@@ -98,7 +101,7 @@ export class TaskStore implements MonthNoteSource {
   /** 읽기에 실패하면(그 사이 지워진 경우 등) null */
   private async readAndParse(file: MonthNoteFile): Promise<ParsedMonthNote | null> {
     try {
-      return parseMonthNote(file.path, await this.vault.read(file));
+      return parseMonthNote(file.path, await this.vault.read(file), this.getLanguage());
     } catch {
       return null;
     }

@@ -3,7 +3,7 @@ import { StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type TodoTrackerPlugin from "./main";
 import { App } from "./ui/App";
-import { T } from "./ui/strings";
+import { t } from "./i18n";
 
 export const VIEW_TYPE = "todo-tracker-view";
 
@@ -22,7 +22,7 @@ export class TaskView extends ItemView {
   }
 
   getDisplayText(): string {
-    return T.viewName;
+    return t("viewName");
   }
 
   getIcon(): string {

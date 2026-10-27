@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cx } from "./cx";
 import { Icon } from "./Icon";
-import { T } from "./strings";
+import { t } from "../i18n";
 
 interface Props {
   title: string;
@@ -31,7 +31,7 @@ export function Section({ title, icon, count, collapsed, onToggle, tools, hint, 
             type="button"
             className={cx("clickable-icon", collapsed && "is-collapsed")}
             aria-expanded={!collapsed}
-            aria-label={collapsed ? T.expand(title) : T.collapse(title)}
+            aria-label={collapsed ? t("expand", { name: title }) : t("collapse", { name: title })}
             onClick={onToggle}
           >
             <Icon name="chevron-up" />

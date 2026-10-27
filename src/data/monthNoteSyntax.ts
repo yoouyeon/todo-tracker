@@ -12,34 +12,73 @@ export const TASK_HEADER_RE = /^- \[([^\]]*)\][ \t]*(.*)$/;
 export const PROPERTY_RE = /^[ \t]+- ([^:]+?):[ \t]*(.*)$/;
 export const INDENTED_RE = /^[ \t]+\S/;
 
-export const FIELD = {
-  firstPlanned: "처음 하기로 한 날",
-  planned: "하기로 한 날",
-  deadline: "마감일",
-  completed: "완료한 날",
-  cancelled: "취소한 날",
-  reason: "이유",
-  category: "분류",
-  alias: "다른 이름",
-  memo: "메모",
-} as const;
+/** 노트에 적는 필드 이름의 언어. 읽을 때는 두 언어를 모두 받고, 새로 쓰는 줄은 설정한 언어로 쓴다. */
+export type NoteLanguage = "ko" | "en";
 
-export type FieldKey = (typeof FIELD)[keyof typeof FIELD];
+export type FieldId = "firstPlanned" | "planned" | "deadline" | "completed" | "cancelled" | "reason" | "category" | "alias" | "memo";
+
+export const FIELD_NAMES: Record<NoteLanguage, Record<FieldId, string>> = {
+  ko: {
+    firstPlanned: "처음 하기로 한 날",
+    planned: "하기로 한 날",
+    deadline: "마감일",
+    completed: "완료한 날",
+    cancelled: "취소한 날",
+    reason: "이유",
+    category: "분류",
+    alias: "다른 이름",
+    memo: "메모",
+  },
+  en: {
+    firstPlanned: "first planned",
+    planned: "planned",
+    deadline: "deadline",
+    completed: "completed",
+    cancelled: "cancelled",
+    reason: "reason",
+    category: "category",
+    alias: "alias",
+    memo: "memo",
+  },
+};
 
 /** 새 속성 줄을 넣을 때 따르는 순서. 기존 노트의 순서와 같다. */
-export const FIELD_ORDER: readonly FieldKey[] = [
-  FIELD.firstPlanned,
-  FIELD.planned,
-  FIELD.deadline,
-  FIELD.completed,
-  FIELD.cancelled,
-  FIELD.reason,
-  FIELD.category,
-  FIELD.alias,
-  FIELD.memo,
+export const FIELD_ORDER: readonly FieldId[] = [
+  "firstPlanned",
+  "planned",
+  "deadline",
+  "completed",
+  "cancelled",
+  "reason",
+  "category",
+  "alias",
+  "memo",
 ];
 
-export const KNOWN_FIELDS: ReadonlySet<string> = new Set(FIELD_ORDER);
+export interface FieldName {
+  id: FieldId;
+  lang: NoteLanguage;
+}
+
+const FIELDS_BY_NAME = new Map<string, FieldName>(
+  (Object.keys(FIELD_NAMES) as NoteLanguage[]).flatMap((lang) => FIELD_ORDER.map((id) => [FIELD_NAMES[lang][id], { id, lang }] as const)),
+);
+
+/** 속성 줄의 이름이 어느 필드인지. 모르는 이름이면 null */
+export const fieldOf = (name: string): FieldName | null => FIELDS_BY_NAME.get(name) ?? null;
+
+export type FrontmatterId = "month" | "hasOpen";
+
+export const FRONTMATTER_KEYS: Record<NoteLanguage, Record<FrontmatterId, string>> = {
+  ko: { month: "월", hasOpen: "미완료" },
+  en: { month: "month", hasOpen: "open" },
+};
+
+/** 같은 뜻의 frontmatter 키를 두 언어로 돌려준다. */
+export const frontmatterKeys = (id: FrontmatterId): string[] => [FRONTMATTER_KEYS.ko[id], FRONTMATTER_KEYS.en[id]];
+
+/** 새 월 노트 맨 위의 제목 */
+export const monthHeading = (month: string, lang: NoteLanguage): string => (lang === "ko" ? `# ${month} 할 일` : `# ${month} todos`);
 
 export function splitLines(content: string): Line[] {
   const lines: Line[] = [];

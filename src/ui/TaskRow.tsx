@@ -4,7 +4,7 @@ import { cx } from "./cx";
 import type { AppHost } from "./host";
 import { Icon } from "./Icon";
 import { PlainButton } from "./PlainButton";
-import { T } from "./strings";
+import { t } from "../i18n";
 
 interface RowProps {
   item: TaskItem;
@@ -17,15 +17,15 @@ interface RowProps {
 /** 오른쪽에 놓는 부가 정보. 오래 밀림·마감 칩과 날짜 */
 function Meta({ item }: { item: TaskItem }) {
   const { task } = item;
-  if (task.status === "done") return <span>{task.completedOn ? T.doneOn(formatMonthDay(task.completedOn)) : T.done}</span>;
-  if (task.status === "cancelled") return <span>{task.cancelledOn ? T.cancelledOn(formatMonthDay(task.cancelledOn)) : T.cancelled}</span>;
+  if (task.status === "done") return <span>{task.completedOn ? t("doneOn", { date: formatMonthDay(task.completedOn) }) : t("done")}</span>;
+  if (task.status === "cancelled") return <span>{task.cancelledOn ? t("cancelledOn", { date: formatMonthDay(task.cancelledOn) }) : t("cancelled")}</span>;
   const alert = item.deadline?.state === "overdue" || item.deadline?.state === "soon";
   return (
     <>
       {item.stale && (
-        <span className="tt-chip" title={T.staleTitle(item.age)}>
+        <span className="tt-chip" title={t("staleTitle", { count: item.age })}>
           <Icon name="hourglass" />
-          {T.staleChip(item.age)}
+          {t("staleChip", { age: item.age })}
         </span>
       )}
       {item.deadline && (
@@ -48,9 +48,9 @@ function Meta({ item }: { item: TaskItem }) {
 function CheckMark({ item, today, host }: { item: TaskItem; today: string; host: AppHost }) {
   const { task } = item;
   if (task.status === "open") {
-    return <PlainButton className="tt-check is-open" label={T.completeMark(task.title)} onClick={() => host.complete(task, today)} />;
+    return <PlainButton className="tt-check is-open" label={t("completeMark", { title: task.title })} onClick={() => host.complete(task, today)} />;
   }
-  const label = task.status === "done" ? T.doneMark : T.cancelledMark;
+  const label = task.status === "done" ? t("doneMark") : t("cancelledMark");
   return (
     <span className={cx("tt-check", `is-${task.status}`)} role="img" aria-label={label}>
       <Icon name={task.status === "done" ? "check" : "minus"} />
@@ -81,13 +81,13 @@ export function TaskRow({ item, today, expanded, onToggle, host }: RowProps) {
           <span className="tt-pills">
             <button type="button" onClick={() => host.complete(task, today)}>
               <Icon name="check" />
-              {T.action.complete}
+              {t("action.complete")}
             </button>
             <button type="button" onClick={(e) => host.showMenu(e.nativeEvent, task, today, "date")}>
               <Icon name="calendar" />
-              {item.current ? formatMonthDay(item.current) : T.action.changeDate}
+              {item.current ? formatMonthDay(item.current) : t("action.changeDate")}
             </button>
-            <button type="button" className="clickable-icon" aria-label={T.more} onClick={(e) => host.showMenu(e.nativeEvent, task, today, "task")}>
+            <button type="button" className="clickable-icon" aria-label={t("more")} onClick={(e) => host.showMenu(e.nativeEvent, task, today, "task")}>
               <Icon name="ellipsis" />
             </button>
           </span>
@@ -106,44 +106,44 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
   return (
     <div className="tt-detail">
       <dl className="tt-fields">
-        <dt>{T.field.planned}</dt>
+        <dt>{t("field.planned")}</dt>
         <dd>
           <div className="tt-dates">
             {changed && task.firstPlanned && (
               <span className="tt-date">
                 {formatMonthDay(task.firstPlanned)}
-                <small>{T.first}</small>
+                <small>{t("first")}</small>
               </span>
             )}
             {task.planned && (
               <span className={cx("tt-date", open && "is-current")}>
                 {formatMonthDay(task.planned)}
-                {changed && <small>{T.current}</small>}
+                {changed && <small>{t("current")}</small>}
               </span>
             )}
           </div>
           {/* 처음 계획한 날이 오늘이거나 아직 오지 않았으면 지난 일수가 없으므로 보여 주지 않는다. */}
           {open && item.age > 0 && (
             <div className="tt-help">
-              {T.ageLine(item.age)}
-              {item.stale && ` · ${T.staleSuffix}`}
+              {t("ageLine", { count: item.age })}
+              {item.stale && ` · ${t("staleSuffix")}`}
             </div>
           )}
         </dd>
 
         {task.deadline && (
           <>
-            <dt>{T.field.deadline}</dt>
+            <dt>{t("field.deadline")}</dt>
             <dd>
               {formatLongDate(task.deadline.date)}
               {task.deadline.time && ` ${task.deadline.time}`}
-              {item.deadline?.state === "overdue" && ` · ${T.overdueSuffix}`}
+              {item.deadline?.state === "overdue" && ` · ${t("overdueSuffix")}`}
             </dd>
           </>
         )}
         {task.status === "done" && task.completedOn && (
           <>
-            <dt>{T.field.completedOn}</dt>
+            <dt>{t("field.completedOn")}</dt>
             <dd>{formatLongDate(task.completedOn)}</dd>
           </>
         )}
@@ -151,32 +151,32 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
           <>
             {task.cancelledOn && (
               <>
-                <dt>{T.field.cancelledOn}</dt>
+                <dt>{t("field.cancelledOn")}</dt>
                 <dd>{formatLongDate(task.cancelledOn)}</dd>
               </>
             )}
             {task.cancelReason && (
               <>
-                <dt>{T.field.reason}</dt>
+                <dt>{t("field.reason")}</dt>
                 <dd>{task.cancelReason}</dd>
               </>
             )}
           </>
         )}
 
-        <dt>{T.field.category}</dt>
-        <dd>{task.category ?? <span className="tt-faint">{T.none}</span>}</dd>
+        <dt>{t("field.category")}</dt>
+        <dd>{task.category ?? <span className="tt-faint">{t("none")}</span>}</dd>
         {task.aliasText && (
           <>
-            <dt>{T.field.alias}</dt>
+            <dt>{t("field.alias")}</dt>
             <dd>
-              {task.aliasText} <span className="tt-faint">· {T.readOnly}</span>
+              {task.aliasText} <span className="tt-faint">· {t("readOnly")}</span>
             </dd>
           </>
         )}
-        <dt>{T.field.memo}</dt>
-        <dd>{task.memo ? <span className="tt-memo">{task.memo}</span> : <span className="tt-faint">{T.none}</span>}</dd>
-        <dt>{T.field.source}</dt>
+        <dt>{t("field.memo")}</dt>
+        <dd>{task.memo ? <span className="tt-memo">{task.memo}</span> : <span className="tt-faint">{t("none")}</span>}</dd>
+        <dt>{t("field.source")}</dt>
         <dd>{task.sourcePath}</dd>
       </dl>
       <div className="tt-actions">
@@ -185,15 +185,15 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
             {/* 마우스를 올릴 수 없는 모바일에는 행 버튼이 없으므로 완료와 날짜 추가도 여기에 둔다. */}
             <button type="button" className="mod-cta tt-touch-only" onClick={() => host.complete(task, today)}>
               <Icon name="check" />
-              {T.action.complete}
+              {t("action.complete")}
             </button>
             <button type="button" className="tt-touch-only" onClick={() => host.pickDate(task, today)}>
               <Icon name="calendar-plus" />
-              {T.action.changeDate}
+              {t("action.changeDate")}
             </button>
             <button type="button" onClick={() => host.edit(task)}>
               <Icon name="pencil" />
-              {T.action.edit}
+              {t("action.edit")}
             </button>
           </>
         )}
@@ -201,11 +201,11 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
           <>
             <button type="button" onClick={() => host.changeCompletedOn(task)}>
               <Icon name="calendar-check" />
-              {T.action.changeCompleted}
+              {t("action.changeCompleted")}
             </button>
             <button type="button" onClick={() => host.reopen(task)}>
               <Icon name="undo-2" />
-              {T.action.reopen}
+              {t("action.reopen")}
             </button>
           </>
         )}
@@ -213,21 +213,21 @@ function TaskDetail({ item, today, host }: { item: TaskItem; today: string; host
           <>
             <button type="button" onClick={() => host.changeCancellation(task)}>
               <Icon name="pencil" />
-              {T.action.changeCancellation}
+              {t("action.changeCancellation")}
             </button>
             <button type="button" onClick={() => host.reopen(task)}>
               <Icon name="undo-2" />
-              {T.action.uncancel}
+              {t("action.uncancel")}
             </button>
           </>
         )}
         <button type="button" onClick={() => host.openNote(task)}>
           <Icon name="file-text" />
-          {T.openNote}
+          {t("openNote")}
         </button>
         {open && (
           <button type="button" className="mod-warning" onClick={() => host.cancel(task, today)}>
-            {T.action.cancel}
+            {t("action.cancel")}
           </button>
         )}
       </div>
@@ -241,11 +241,11 @@ export function ProblemRow({ item, host }: { item: TaskItem; host: AppHost }) {
   return (
     <div className="tt-item is-problem">
       <div className="tt-row">
-        <span className="tt-check is-problem" role="img" aria-label={T.readOnly}>
+        <span className="tt-check is-problem" role="img" aria-label={t("readOnly")}>
           <Icon name="info" />
         </span>
         <div className="tt-problem-body">
-          <span className="tt-item-title">{task.title || T.problems.noTitle}</span>
+          <span className="tt-item-title">{task.title || t("problems.noTitle")}</span>
           <ul className="tt-problem-list">
             {task.problems.map((p, i) => (
               <li key={i}>{p.message}</li>
@@ -255,7 +255,7 @@ export function ProblemRow({ item, host }: { item: TaskItem; host: AppHost }) {
         </div>
         <button type="button" onClick={() => host.openNote(task)}>
           <Icon name="file-text" />
-          {T.openNote}
+          {t("openNote")}
         </button>
       </div>
     </div>

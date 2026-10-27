@@ -8,7 +8,7 @@ import type { AppHost } from "./host";
 import { Icon } from "./Icon";
 import { Section } from "./Section";
 import { StatCards, type Tab } from "./StatCards";
-import { T } from "./strings";
+import { t } from "../i18n";
 import { ProblemRow, TaskRow } from "./TaskRow";
 import { useNow } from "./useNow";
 
@@ -67,7 +67,7 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
   if (!snapshot.loaded) {
     return (
       <div className="tt-view">
-        <div className="tt-blank">{T.loading}</div>
+        <div className="tt-blank">{t("loading")}</div>
       </div>
     );
   }
@@ -114,11 +114,11 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
         {rows(shown)}
       </div>
     ) : (
-      <div className="tt-empty">{filtered ? T.emptyFiltered : empty}</div>
+      <div className="tt-empty">{filtered ? t("emptyFiltered") : empty}</div>
     );
   };
   const addButton = (name: string, date: string) => (
-    <button type="button" className="clickable-icon" aria-label={T.addTo(name)} onClick={() => host.newTask(date)}>
+    <button type="button" className="clickable-icon" aria-label={t("addTo", { name })} onClick={() => host.newTask(date)}>
       <Icon name="plus" />
     </button>
   );
@@ -129,14 +129,14 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
   const header = (
     <div className="tt-head">
       <div className="tt-head-text">
-        <h2 className="tt-title">{T.title}</h2>
+        <h2 className="tt-title">{t("title")}</h2>
         <div className="tt-sub">
-          {formatLongDate(today)} · {T.todaySummary(todayTotal, counts.doneToday)}
+          {formatLongDate(today)} · {t("todaySummary", { total: todayTotal, done: counts.doneToday })}
         </div>
       </div>
-      <button type="button" className="mod-cta tt-new" aria-label={T.newTask} onClick={() => host.newTask(today)}>
+      <button type="button" className="mod-cta tt-new" aria-label={t("newTask")} onClick={() => host.newTask(today)}>
         <Icon name="plus" />
-        <span className="tt-new-label">{T.newTask}</span>
+        <span className="tt-new-label">{t("newTask")}</span>
       </button>
     </div>
   );
@@ -146,8 +146,8 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
       <div className="tt-view">
         {header}
         <div className="tt-blank">
-          <div className="tt-blank-title">{T.emptyTitle}</div>
-          <div className="tt-blank-desc">{T.emptyDesc(snapshot.folder)}</div>
+          <div className="tt-blank-title">{t("emptyTitle")}</div>
+          <div className="tt-blank-desc">{(snapshot.folder === "" ? t("emptyDescRoot") : t("emptyDesc", { folder: snapshot.folder }))}</div>
         </div>
       </div>
     );
@@ -166,16 +166,16 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
       />
       {tab !== "all" && (
         <div className="tt-scope">
-          {T.scope(T.stat[tab])} ·
+          {t("scope", { name: t(`stat.${tab}`) })} ·
           <button type="button" onClick={() => setTab("all")}>
-            {T.showAll}
+            {t("showAll")}
           </button>
         </div>
       )}
 
       {show("past") && (
         <Section
-          title={T.stat.past}
+          title={t("stat.past")}
           icon="history"
           count={board.past.length}
           collapsed={!!collapsed.past}
@@ -184,23 +184,23 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
             staleInPast > 0 && (
               <div className="tt-hint">
                 <Icon name="hourglass" />
-                {T.staleHint(staleInPast)}
+                {t("staleHint", { n: staleInPast })}
               </div>
             )
           }
         >
-          {list("past", board.past, T.emptyPast)}
+          {list("past", board.past, t("emptyPast"))}
         </Section>
       )}
 
       {show("today") && (
         <Section
-          title={T.stat.today}
+          title={t("stat.today")}
           icon="sun"
           count={board.today.length}
           collapsed={!!collapsed.today}
           onToggle={() => toggleCollapsed("today")}
-          tools={addButton(T.stat.today, today)}
+          tools={addButton(t("stat.today"), today)}
         >
           {board.today.length + board.doneToday.length > 0 ? (
             <div className="tt-list" onMouseLeave={() => release("today")}>
@@ -208,40 +208,40 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
               {rows(board.doneToday.filter((i) => !heldDone.has(i.key)))}
             </div>
           ) : (
-            <div className="tt-empty">{filtered ? T.emptyFiltered : T.emptyToday}</div>
+            <div className="tt-empty">{filtered ? t("emptyFiltered") : t("emptyToday")}</div>
           )}
         </Section>
       )}
 
       {show("upcoming") && (
         <Section
-          title={T.stat.upcoming}
+          title={t("stat.upcoming")}
           icon="calendar"
           count={board.upcoming.length}
           collapsed={!!collapsed.upcoming}
           onToggle={() => toggleCollapsed("upcoming")}
-          tools={addButton(T.stat.upcoming, addDays(today, 1))}
+          tools={addButton(t("stat.upcoming"), addDays(today, 1))}
         >
-          {list("upcoming", board.upcoming, T.emptyUpcoming)}
+          {list("upcoming", board.upcoming, t("emptyUpcoming"))}
         </Section>
       )}
 
       {tab === "records" && (
         <Section
-          title={T.stat.records}
+          title={t("stat.records")}
           icon="archive"
           count={board.records.length}
           collapsed={!!collapsed.records}
           onToggle={() => toggleCollapsed("records")}
           tools={
             <div className="tt-record-filters">
-              <select className="dropdown" aria-label={T.recordFilter.statusLabel} value={recordStatus} onChange={(e) => setRecordStatus(e.target.value as RecordStatusFilter)}>
-                <option value="all">{T.recordFilter.all(counts.records)}</option>
-                <option value="done">{T.recordFilter.done(counts.done)}</option>
-                <option value="cancelled">{T.recordFilter.cancelled(counts.cancelled)}</option>
+              <select className="dropdown" aria-label={t("recordFilter.statusLabel")} value={recordStatus} onChange={(e) => setRecordStatus(e.target.value as RecordStatusFilter)}>
+                <option value="all">{t("recordFilter.all", { n: counts.records })}</option>
+                <option value="done">{t("recordFilter.done", { n: counts.done })}</option>
+                <option value="cancelled">{t("recordFilter.cancelled", { n: counts.cancelled })}</option>
               </select>
-              <select className="dropdown" aria-label={T.recordFilter.monthLabel} value={recordMonth} onChange={(e) => setRecordMonth(e.target.value)}>
-                <option value="">{T.recordFilter.allMonths}</option>
+              <select className="dropdown" aria-label={t("recordFilter.monthLabel")} value={recordMonth} onChange={(e) => setRecordMonth(e.target.value)}>
+                <option value="">{t("recordFilter.allMonths")}</option>
                 {board.recordMonths.map((month) => (
                   <option key={month} value={month}>
                     {month}
@@ -257,12 +257,12 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
 
       {tab === "all" && (board.problems.length > 0 || board.fileIssues.length > 0) && (
         <Section
-          title={T.problems.title}
+          title={t("problems.title")}
           icon="info"
           count={board.problems.length + board.fileIssues.length}
           collapsed={!!collapsed.problems}
           onToggle={() => toggleCollapsed("problems")}
-          hint={<div className="tt-hint">{T.problems.hint}</div>}
+          hint={<div className="tt-hint">{t("problems.hint")}</div>}
         >
           <div className="tt-list">
             {board.problems.map((item) => (
@@ -295,7 +295,7 @@ export function App({ store, host, getNow = defaultNow, initialTab = "all" }: Ap
 
 /** 기록을 처리한 날짜별로 묶어 보여 준다. */
 function RecordGroups({ items, rows }: { items: TaskItem[]; rows: (items: TaskItem[]) => ReactNode }) {
-  if (items.length === 0) return <div className="tt-empty">{T.emptyRecords}</div>;
+  if (items.length === 0) return <div className="tt-empty">{t("emptyRecords")}</div>;
   const groups: { date: string; items: TaskItem[] }[] = [];
   for (const item of items) {
     const date = item.task.completedOn ?? item.task.cancelledOn ?? "";
@@ -307,7 +307,7 @@ function RecordGroups({ items, rows }: { items: TaskItem[]; rows: (items: TaskIt
     <>
       {groups.map((group) => (
         <div key={group.date || "none"}>
-          <div className="tt-record-day">{group.date ? formatLongDate(group.date) : T.noDate}</div>
+          <div className="tt-record-day">{group.date ? formatLongDate(group.date) : t("noDate")}</div>
           <div className="tt-list">{rows(group.items)}</div>
         </div>
       ))}
