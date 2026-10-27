@@ -22,8 +22,9 @@ export interface MonthNoteSnapshot {
 }
 
 export interface MonthNoteSource {
-  subscribe(listener: () => void): () => void;
-  getSnapshot(): MonthNoteSnapshot;
+  // useSyncExternalStore에 그대로 넘기므로 메서드가 아니라 this를 쓰지 않는 함수로 둔다.
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => MonthNoteSnapshot;
 }
 
 /**
