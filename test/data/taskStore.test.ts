@@ -14,8 +14,9 @@ class FakeVault implements MonthNoteVault {
   constructor(files: Record<string, string>) {
     for (const [path, content] of Object.entries(files)) this.files.set(path, content);
   }
-  listMarkdownFiles(): MonthNoteFile[] {
-    return [...this.files.keys()].map((path) => ({ path }));
+  listFolderFiles(folder: string): MonthNoteFile[] {
+    const inFolder = (path: string) => (path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "") === folder;
+    return [...this.files.keys()].filter(inFolder).map((path) => ({ path }));
   }
   async read(file: MonthNoteFile): Promise<string> {
     const content = this.files.get(file.path);

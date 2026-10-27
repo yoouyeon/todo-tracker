@@ -8,7 +8,8 @@ export interface MonthNoteFile {
 }
 
 export interface MonthNoteVault {
-  listMarkdownFiles(): MonthNoteFile[];
+  /** 폴더 바로 아래의 파일만. vault 전체를 훑지 않는다. 빈 문자열은 vault 루트다. */
+  listFolderFiles(folder: string): MonthNoteFile[];
   read(file: MonthNoteFile): Promise<string>;
 }
 
@@ -56,7 +57,7 @@ export class TaskStore implements MonthNoteSource {
   async scan(): Promise<void> {
     const version = ++this.scanVersion;
     const folder = this.getFolder();
-    const files = this.vault.listMarkdownFiles().filter((file) => isMonthNotePath(file.path, folder));
+    const files = this.vault.listFolderFiles(normalizeFolder(folder)).filter((file) => isMonthNotePath(file.path, folder));
     const parsed = await Promise.all(files.map((file) => this.readAndParse(file)));
     // 훑는 동안 폴더 설정이 또 바뀌었으면 마지막 훑기만 반영한다.
     if (version !== this.scanVersion) return;

@@ -19,7 +19,10 @@ export default class TodoTrackerPlugin extends Plugin {
 
     this.store = new TaskStore(
       {
-        listMarkdownFiles: () => this.app.vault.getMarkdownFiles(),
+        listFolderFiles: (folder) => {
+          const dir = folder === "" ? this.app.vault.getRoot() : this.app.vault.getFolderByPath(folder);
+          return dir ? dir.children.filter((file): file is TFile => file instanceof TFile) : [];
+        },
         read: (file) => this.app.vault.read(file as TFile),
       },
       () => this.settings.folder,
