@@ -47,7 +47,7 @@ Open it from the ribbon icon or the command `Todo Tracker: 할 일 열기` (Open
 2. vault의 `.obsidian/plugins/todo-tracker/` 폴더에 세 파일을 넣습니다.
 3. 옵시디언을 다시 열고 설정 → 커뮤니티 플러그인에서 `Todo Tracker`를 켭니다.
 
-옵시디언 1.11.0 이상에서 동작하며 데스크톱과 모바일을 모두 지원합니다.
+옵시디언 1.13.0 이상에서 동작하며 데스크톱과 모바일을 모두 지원합니다.
 
 ### 첫 할 일 적기
 
