@@ -18,6 +18,10 @@
 .is-phone .tt-view {
   padding: var(--size-4-4) var(--size-4-3) var(--size-4-3);
 }
+/* 모바일에서는 목록이 떠 있는 하단 바 아래까지 스크롤되므로, 끝까지 내렸을 때 마지막 항목이 하단 바와 필터 막대에 가리지 않도록 그만큼 비운다. */
+.is-mobile.is-floating-nav .tt-view {
+  padding-bottom: calc(var(--navbar-height) + var(--navbar-bottom-offset) + var(--size-4-3));
+}
 
 .tt-icon {
   display: inline-flex;

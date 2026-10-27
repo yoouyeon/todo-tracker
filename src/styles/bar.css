@@ -20,6 +20,10 @@
 .is-phone .tt-bar {
   bottom: var(--size-4-3);
 }
+/* 모바일의 떠 있는 하단 바에 가리지 않도록 그 높이와 아래 간격만큼 올린다. */
+.is-mobile.is-floating-nav .tt-bar {
+  bottom: calc(var(--navbar-height) + var(--navbar-bottom-offset) + var(--size-4-3));
+}
 .tt-bar-sep {
   flex: none;
   width: 1px;
